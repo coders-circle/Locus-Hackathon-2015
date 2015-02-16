@@ -6,7 +6,7 @@ class Font
 public:
     void Initialize(const std::string& imageFile, const std::string& infoFile)
     {
-        using namespace tinyxml2;
+/*        using namespace tinyxml2;
         XMLDocument doc;
         doc.LoadFile(infoFile.c_str());
 
@@ -29,7 +29,26 @@ public:
             m_chars[c] = cinfo;
             ch = ch->NextSibling();
         }
-        m_sprite.Initialize(imageFile, 32, 32);
+        */
+        m_sprite.Initialize(imageFile, 32, 32, 16, 16);
+    }
+
+    void DrawText(float x, float y, const std::string& string, float size)
+    {
+        float py = y, px = 0.0f;
+        for (size_t i=0; i<string.size(); ++i)
+        {
+            if (string[i] == '\n')
+            {
+                py+=32.0f;
+                px=0.0f;
+            }
+            else
+            {
+                m_sprite.Render(x+px, py, size, 1.0f, string[i]);
+                px += (32.0f - 7.0f) * size;
+            }
+        }
     }
 
 private:
@@ -40,3 +59,4 @@ private:
     Sprite m_sprite;
     std::map<char, CharInfo> m_chars;
 };
+

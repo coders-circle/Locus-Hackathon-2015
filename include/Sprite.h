@@ -65,11 +65,12 @@ public:
                 animation.imageId %= m_numCols * m_numRows;
         }
     }
-
+    
     void Render(float posX, float posY, float scale = 1.0f, float visibility = 1.0f, uint32_t imageId = 0)
     {
         if (!m_loaded)
             return;
+        //glm::vec2 uv(u, v);
         glm::vec2 uv((float)(imageId%m_numCols)/(float)m_numCols, -(float)(imageId/m_numCols)/(float)m_numRows);
 
         glActiveTexture(GL_TEXTURE0);
