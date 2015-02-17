@@ -15,7 +15,7 @@ class Sprite
 public:
     Sprite() : m_texture(NULL), m_sprite(NULL), m_anim(NULL)  {}
     
-    void Initialize(const sf::Uint8* pixels, int width, int height)
+    void Init(const sf::Uint8* pixels, int width, int height)
     {
         if (m_texture || m_sprite)
             return;
@@ -28,7 +28,7 @@ public:
         m_texture->update(pixels);
         m_sprite->setTexture(*m_texture);
     }
-    void Initialize(const std::string& filename, int numCols = 1, int numRows = 1)
+    void Init(const std::string& filename, int numCols = 1, int numRows = 1)
     {
         if (m_texture || m_sprite)
             return;

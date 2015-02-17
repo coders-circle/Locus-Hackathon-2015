@@ -3,45 +3,80 @@
 #include "Window.h"
 #include "World.h"
 
-#define WIDTH 800
-#define HEIGHT 600
+#define WIDTH (int(800/16)*16)
+#define HEIGHT (int(600/16)*16)
 
 
 Window g_window;
 Sprite g_blackSprite;
-Object g_obj1;
-Sprite g_testSprite;
+Sprite g_redSprite;
 World g_world;
-void Initialize()
+std::list<Object> g_walls;
+Object g_player;
+
+void CreateWall(float x, float y)
+{
+    Object obj;
+    obj.Init(&g_blackSprite, x, y);
+    g_walls.push_back(obj);
+    g_world.AddObject(&(*(--g_walls.end())));
+}
+void Create16x16Sprite(Sprite& spr, uint32_t rgba)
 {
     sf::Uint8 pixels[16*16*4];
-    for (int i=0; i<16*16*4; ++i)
-        if ((i+1)%4 == 0)
-            pixels[i] = 0xFF;
-        else
-            pixels[i] = 0x0;
-    g_blackSprite.Initialize(pixels, 16, 16);
+    for (int i=0; i<16*16*4; i+=4)
+        (*(int*)&pixels[i]) = rgba;
+    spr.Init(pixels, 16, 16);
 
-    g_testSprite.Initialize("explosion.png", 4, 5);
-    g_testSprite.MakeAnimated();
-    g_testSprite.GetAnimData()->speed = 10;
+}
+void Initialize()
+{
+    Create16x16Sprite(g_blackSprite, 0xFF000000);
+    Create16x16Sprite(g_redSprite, 0xFF0000FF);
 
-    g_obj1.Init(&g_blackSprite);
     g_world.Init(WIDTH, HEIGHT);
-    g_world.AddObject(&g_obj1);
+    
+    for (float x=0; x<WIDTH; x+=16)
+        CreateWall(x, 0);
+    for (float y=16; y<HEIGHT; y+=16)
+        CreateWall(0, y);
+    for (float x=16; x<WIDTH-16; x+=16)
+        CreateWall(x, HEIGHT-16);
+    for (float y=16; y<HEIGHT; y+=16)
+        CreateWall(WIDTH-16, y);
+    
+    std::random_device rd;
+    std::default_random_engine e1(rd());
+    std::uniform_int_distribution<int> xr(0, WIDTH/16-1);
+    std::uniform_int_distribution<int> yr(0, HEIGHT/16-1);
+    for (int i=0; i<200; ++i)
+    {
+        float x = (float)xr(e1)*16.0f, y = (float)yr(e1)*16.0f;
+        if (!g_world.HasObstacle(x, y))
+            CreateWall(x, y);
+    }
+
+    bool done = false;
+    do
+    {
+        float x = (float)xr(e1)*16.0f, y = (float)yr(e1)*16.0f;
+        if (done = !g_world.HasObstacle(x, y))
+        {
+            g_player.Init(&g_redSprite, x, y);
+            g_world.AddObject(&g_player);
+        }
+    } while (!done);
+
 }
 
 void Update(double dt)
 {
-    g_testSprite.Animate(dt);
-    g_obj1.SetX(g_obj1.GetX() + (float)dt*10);
     
     g_world.Update(dt);
 }
 
 void Render()
 {
-    g_testSprite.Render(200, 200);
 
     g_world.Render();
 }
@@ -49,8 +84,7 @@ void Render()
 void CleanUp()
 {
     g_blackSprite.CleanUp();
-    g_testSprite.CleanUp();
-
+    g_redSprite.CleanUp();
     g_world.CleanUp();
 }
 

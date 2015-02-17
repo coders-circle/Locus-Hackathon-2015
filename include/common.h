@@ -8,7 +8,9 @@
 #include <functional>
 #include <stdint.h>
 #include <vector>
+#include <list>
 #include <map>
+#include <random>
 
 class Exception : public std::runtime_error
 {
