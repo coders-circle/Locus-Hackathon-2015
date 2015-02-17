@@ -4,6 +4,7 @@
 #include "Renderer.h"
 #include "Sprite.h"
 #include "Font.h"
+#include "AmbientSoundUnit.h"
 
 Window g_window;
 Renderer g_renderer;
@@ -11,6 +12,9 @@ Renderer g_renderer;
 Sprite g_sprite;
 Animation animation;
 Font g_font;
+
+StaticAmbientSoundUnit g_su;
+
 void Initialize()
 {
     g_renderer.Initialize(WIDTH, HEIGHT);
@@ -26,7 +30,8 @@ void Update(double dt)
     else if (c<=0.0f) inc = 1.0f;
     g_renderer.SetBackColor(glm::vec3(c, c+0.2f, c-0.2f));
     g_sprite.Animate(animation, dt);
-    animation.speed = 5;
+    animation.speed = 25;
+    g_su.Update(dt);
 }
 
 void Render()
@@ -40,7 +45,6 @@ void Render()
 void CleanUp()
 {
     g_renderer.CleanUp();
-
     g_sprite.CleanUp();
 }
 
@@ -68,3 +72,12 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
+
+#ifdef _WIN32
+#pragma comment(lib, "sfml-graphics-d.lib")
+#pragma comment(lib, "sfml-window-d.lib")
+#pragma comment(lib, "sfml-system-d.lib")
+#pragma comment(lib, "sfml-audio-d.lib")
+
+#pragma comment(lib, "opengl32.lib")
+#endif

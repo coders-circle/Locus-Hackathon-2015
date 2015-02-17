@@ -4,6 +4,8 @@
 #include <glew/glew.h>
 #include "GL/gl.h"
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+#include <SFML/System.hpp>
 
 #include <iostream>
 #include <fstream>
