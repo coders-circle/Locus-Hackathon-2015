@@ -10,9 +10,6 @@
 #include <vector>
 #include <map>
 
-#define WIDTH 800
-#define HEIGHT 600
-
 class Exception : public std::runtime_error
 {
 public:

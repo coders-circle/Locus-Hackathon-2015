@@ -80,7 +80,7 @@ public:
         }
         sf::Vector2f uv((float)(imageId%m_numCols)/(float)m_numCols, (float)(imageId/m_numCols)/(float)m_numRows);
         uint32_t w = m_texture->getSize().x, h = m_texture->getSize().y;
-        m_sprite->setTextureRect(sf::IntRect(uv.x*w, uv.y*h, w/m_numCols, h/m_numRows));
+        m_sprite->setTextureRect(sf::IntRect(int(uv.x*(float)w), int(uv.y*(float)h), w/m_numCols, h/m_numRows));
         m_sprite->setScale(scale, scale);
         m_sprite->setPosition(posX, posY);
         g_window.m_window->draw(*m_sprite);
@@ -93,6 +93,11 @@ public:
         if (m_sprite)
             delete m_texture;
     }
+    
+    float GetWidth() const { return (float)m_texture->getSize().x/(float)m_numCols; }
+    float GetHeight() const { return (float)m_texture->getSize().y/(float)m_numRows; }
+
+
 private:
     sf::Texture *m_texture;
     sf::Sprite *m_sprite;
