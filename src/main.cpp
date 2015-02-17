@@ -2,6 +2,7 @@
 #include "Timer.h"
 #include "Window.h"
 #include "World.h"
+#include "AmbientSound.h"
 
 #define WIDTH (int(800/16)*16)
 #define HEIGHT (int(600/16)*16)
@@ -13,6 +14,9 @@ Sprite g_redSprite;
 World g_world;
 std::list<Object> g_walls;
 Object g_player;
+
+sf::Vector3f g_playerPos(0.0f, 0.0f, 0.0f);
+AmbientSound g_envSound;
 
 void CreateWall(float x, float y)
 {
@@ -68,6 +72,8 @@ void Initialize()
         }
     } while (!done);
 
+    g_envSound.AddStaticUnit("cat1.wav", sf::Vector3f(10.0f, 0.0f, 0.0f), 1.0f);
+    g_envSound.SetListenerPosition(g_playerPos);
 }
 
 int tx=-1, ty=-1;
@@ -137,6 +143,38 @@ void Update(double dt)
             float nx = (float)g_player.GetX() + dx;
             float ny = (float)g_player.GetY() + dy;
             int trial = 0;
+
+            if (!g_world.HasObstacle(nx, ny))
+            {
+                dx = (float)tx - g_player.GetX();
+                dy = 0;
+                if (dx < 0)
+                {
+                    dx = -16;
+                    g_player.SetDir(LEFT);
+                }
+                else if (dx > 0)
+                {
+                    g_player.SetDir(RIGHT);
+                    dx = 16;
+                }
+                else
+                {
+                    dy = (float)ty - g_player.GetY();
+                    if (dy < 0)
+                    {
+                        g_player.SetDir(UP);
+                        dy = -16;
+                    }
+                    else if (dy > 0)
+                    {
+                        g_player.SetDir(DOWN);
+                        dy = 16;
+                    }
+                }
+            }
+            nx = (float)g_player.GetX() + dx;
+            ny = (float)g_player.GetY() + dy;
             while (g_world.HasObstacle(nx, ny) && trial < 4)
             {
                 if (dx < 0)
@@ -194,6 +232,27 @@ void Update(double dt)
     }
 
     g_world.Update(dt);
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+    {
+        g_playerPos.x--;
+        g_envSound.SetListenerPosition(g_playerPos);
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+    {
+        g_playerPos.x++;
+        g_envSound.SetListenerPosition(g_playerPos);
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+    {
+        g_playerPos.y++;
+        g_envSound.SetListenerPosition(g_playerPos);
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+    {
+        g_playerPos.y--;
+        g_envSound.SetListenerPosition(g_playerPos);
+    }
+    g_envSound.Update(dt);
 }
 
 void Render()
@@ -227,3 +286,12 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
+
+#ifdef _WIN32
+#pragma comment(lib, "sfml-graphics-d.lib")
+#pragma comment(lib, "sfml-window-d.lib")
+#pragma comment(lib, "sfml-system-d.lib")
+#pragma comment(lib, "sfml-audio-d.lib")
+
+#pragma comment(lib, "opengl32.lib")
+#endif

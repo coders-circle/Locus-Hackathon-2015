@@ -15,7 +15,7 @@ OBJ_FILES := $(addprefix $(OBJ_DIR)/,$(CPP_FILES:$(SRC_DIR)/%.cpp=%.o))
 ## Compiler, compiler and linker flags and libaries to use
 CXX := g++
 CXXLIBS := 
-LDLIBS := -lsfml-graphics -lsfml-window -lsfml-system
+LDLIBS := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 CXXFLAGS := -I $(INC_DIR) -std=c++11 -MMD -pthread -Wconversion $(CXXLIBS)
 LDFLAGS := --std=c++11 $(LDLIBS)
 
