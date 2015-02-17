@@ -1,16 +1,19 @@
 #pragma once
 #include "tinyxml2/tinyxml2.h"
 
-class Font
+extern Window g_window;
+class BitmapFont
 {
 public:
     void Initialize(const std::string& imageFile, const std::string& infoFile)
     {
-/*        using namespace tinyxml2;
+        using namespace tinyxml2;
         XMLDocument doc;
         doc.LoadFile(infoFile.c_str());
 
-        auto* font = doc.FirstChildElement("font");
+        auto* font = doc.FirstChildElement("font"); 
+        auto* info = font->FirstChildElement("info");
+        size = info->IntAttribute("size");
         auto* chars = font->FirstChildElement("chars");
         auto* ch = chars->FirstChild();
         while (ch)
@@ -29,24 +32,27 @@ public:
             m_chars[c] = cinfo;
             ch = ch->NextSibling();
         }
-        */
-        m_sprite.Initialize(imageFile, 32, 32, 16, 16);
+        texture.loadFromFile(imageFile);
+        sprite.setTexture(texture);
     }
 
-    void DrawText(float x, float y, const std::string& string, float size)
+    void DrawText(float x, float y, const std::string& string)
     {
         float py = y, px = 0.0f;
         for (size_t i=0; i<string.size(); ++i)
         {
             if (string[i] == '\n')
             {
-                py+=32.0f;
-                px=0.0f;
+                py += size;
+                px = 0;
             }
             else
             {
-                m_sprite.Render(x+px, py, size, 1.0f, string[i]);
-                px += (32.0f - 7.0f) * size;
+                CharInfo& c = m_chars[string[i]];
+                sprite.setTextureRect(sf::IntRect(c.x, c.y, c.width, c.height));
+                sprite.setPosition(px + c.xoffset, py + c.yoffset);
+                px += c.xadvance;
+                g_window.m_window->draw(sprite);
             }
         }
     }
@@ -56,7 +62,10 @@ private:
     {
         float x, y, width, height, xoffset, yoffset, xadvance;
     };
-    Sprite m_sprite;
     std::map<char, CharInfo> m_chars;
+    int size;
+
+    sf::Sprite sprite;
+    sf::Texture texture;
 };
 

@@ -1,47 +1,49 @@
 #include <common.h>
 #include "Timer.h"
 #include "Window.h"
-#include "Renderer.h"
 #include "Sprite.h"
 #include "Font.h"
+#include "Object.h"
 
 Window g_window;
-Renderer g_renderer;
-
-Sprite g_sprite;
-Animation animation;
-Font g_font;
+Sprite g_blackSprite;
+Object g_obj1;
+Sprite g_testSprite;
 void Initialize()
 {
-    g_renderer.Initialize(WIDTH, HEIGHT);
-    g_sprite.Initialize("explosion.png", 100, 100, 4, 5);
-    g_font.Initialize("font1.png", "font.xml");
+    sf::Uint8 pixels[16*16*4];
+    for (int i=0; i<16*16*4; ++i)
+        if ((i+1)%4 == 0)
+            pixels[i] = 0xFF;
+        else
+            pixels[i] = 0x0;
+    g_blackSprite.Initialize(pixels, 16, 16);
+
+    g_testSprite.Initialize("explosion.png", 4, 5);
+    g_testSprite.MakeAnimated();
+    g_testSprite.GetAnimData()->speed = 10;
+
+    g_obj1.Init(&g_blackSprite);
 }
 
-float c = 0.0f; float inc = 1.0f;
 void Update(double dt)
 {
-    c +=dt*0.1f*inc;
-    if (c>=1.0f) inc = -1.0f;
-    else if (c<=0.0f) inc = 1.0f;
-    g_renderer.SetBackColor(glm::vec3(c, c+0.2f, c-0.2f));
-    g_sprite.Animate(animation, dt);
-    animation.speed = 5;
+    g_testSprite.Animate(dt);
+    g_obj1.Update(dt);
+    g_obj1.x += dt*10;
 }
 
 void Render()
 {
-    g_renderer.BeginRender();
-
-    g_sprite.Render(animation, 100, 100);
-    g_font.DrawText(200, 200, "Hello\nWorld BIBEK IS GREAT", 0.5f);
+    g_testSprite.Render(200, 200);
+    g_obj1.Render();
 }
 
 void CleanUp()
 {
-    g_renderer.CleanUp();
-
-    g_sprite.CleanUp();
+    g_blackSprite.CleanUp();
+    g_testSprite.CleanUp();
+    g_obj1.CleanUp();
 }
 
 int main(int argc, char* argv[])
@@ -49,18 +51,12 @@ int main(int argc, char* argv[])
     try
     {
         g_window.Create("Testing", WIDTH, HEIGHT);
-        
-        glewExperimental = true;
-        GLenum err = glewInit();
-        if (err != GLEW_OK)
-            throw Exception(std::string((const char*)glewGetErrorString(err)));
-
         Initialize();
         g_window.SetUpdateCallback(Update);
         g_window.SetRenderCallback(Render);
         g_window.MainLoop();
-        g_window.CleanUp();
         CleanUp();
+        g_window.CleanUp();
     }
     catch (std::exception &ex)
     {

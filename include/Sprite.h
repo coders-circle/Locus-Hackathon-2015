@@ -1,7 +1,6 @@
 #pragma once
-#include "Texture.h"
 
-extern Renderer g_renderer;
+extern Window g_window;
 
 struct Animation
 {
@@ -14,96 +13,90 @@ struct Animation
 class Sprite
 {
 public:
-    Sprite() : m_loaded(false)  {}
-
-    void Initialize(const std::string& filename, float width, float height, int numCols = 1, int numRows = 1, float offsetX = 0, float offsetY = 0)
+    Sprite() : m_texture(NULL), m_sprite(NULL), m_anim(NULL)  {}
+    
+    void Initialize(const sf::Uint8* pixels, int width, int height)
     {
-        struct Vertex
-        {
-            glm::vec2 pos, tex;
-        };
-
+        if (m_texture || m_sprite)
+            return;
+        m_texture = new sf::Texture;
+        m_sprite = new sf::Sprite;
+        m_numCols = 1; m_numRows = 1;
+        
+        if (!m_texture->create(width, height))
+            throw Exception("Couldn't create texture");
+        m_texture->update(pixels);
+        m_sprite->setTexture(*m_texture);
+    }
+    void Initialize(const std::string& filename, int numCols = 1, int numRows = 1)
+    {
+        if (m_texture || m_sprite)
+            return;
         m_numCols = numCols;
         m_numRows = numRows;
-        
-        float u = 1.0f/numCols, v = 1.0f/numRows;
-        std::vector<Vertex> vertices = {
-            { glm::vec2(-offsetX, -offsetY), glm::vec2(0.0f, 1.0f) },
-            { glm::vec2(-offsetX, height-offsetY), glm::vec2(0.0f, 1.0f-v) },
-            { glm::vec2(width-offsetX, height-offsetY), glm::vec2(u, 1.0f-v) },
-            { glm::vec2(width-offsetX, -offsetY), glm::vec2(v, 1.0f) },
-        };
-
-        glGenVertexArrays(1, &m_vao);
-        glBindVertexArray(m_vao);
-        glGenBuffers(1, &m_vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
-
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, pos));
-
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, tex));
-        m_loaded = true;
-
-        m_texId = Texture::LoadTexture(filename);
+        m_texture = new sf::Texture;
+        m_sprite = new sf::Sprite;
+        if (!m_texture->loadFromFile("explosion.png"))
+            throw Exception("Couldn't load from file: " + filename);
+        m_sprite->setTexture(*m_texture);
+    }
+    void MakeAnimated()
+    {
+        if (m_anim)
+            delete m_anim;
+        m_anim = new Animation();
     }
 
-    void Animate(Animation &animation, double dt, bool * end = NULL)
+    void Animate(double dt, bool * end = NULL)
     {
-        animation.time += dt;
+        if (!m_anim)
+            return;
+        m_anim->time += dt;
         if (end)
             *end = false;
-        if (animation.time >= 1.0/animation.speed)
+        if (m_anim->time >= 1.0/m_anim->speed)
         {
-            animation.time = 0;
-            ++animation.imageId;
-            if (end && animation.imageId >= uint32_t(m_numCols * m_numRows))
+            m_anim->time = 0;
+            ++m_anim->imageId;
+            if (end && m_anim->imageId >= uint32_t(m_numCols * m_numRows))
                 *end = true;
-            if (animation.loop)
-                animation.imageId %= m_numCols * m_numRows;
+            if (m_anim->loop)
+                m_anim->imageId %= m_numCols * m_numRows;
         }
     }
+
+    Animation* GetAnimData() { return m_anim; }
     
-    void Render(float posX, float posY, float scale = 1.0f, float visibility = 1.0f, uint32_t imageId = 0)
+    void Render(float posX, float posY, float scale = 1.0f, float visibility = 1.0f, int imageId = -1)
     {
-        if (!m_loaded)
+        if (!m_texture || !m_sprite)
             return;
-        //glm::vec2 uv(u, v);
-        glm::vec2 uv((float)(imageId%m_numCols)/(float)m_numCols, -(float)(imageId/m_numCols)/(float)m_numRows);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_texId);
-       
-        glm::mat4 transform = g_renderer.transforms.vp * glm::translate(glm::mat4(), glm::vec3(posX, posY, 0.0f))
-                                    * glm::scale(glm::mat4(), glm::vec3(scale));
-        glUniformMatrix4fv(g_renderer.uniforms.transform, 1, GL_FALSE, glm::value_ptr(transform));
-        glUniform2fv(g_renderer.uniforms.uv, 1, glm::value_ptr(uv));
-        glUniform1i(g_renderer.uniforms.texture_sample, 0);
-        glUniform1f(g_renderer.uniforms.visibility, visibility);
-
-        glBindVertexArray(m_vao);
-        glDrawArrays(GL_QUADS, 0, 4);
-    }
-
-    void Render(Animation &animation, float posX, float posY, float scale = 1.0f, float visibility = 1.0f)
-    {
-        Render(posX, posY, scale, visibility, animation.imageId);
+        if (imageId < 0)
+        {
+            if (m_anim)
+                imageId = m_anim->imageId;
+            else
+                imageId = 0;
+        }
+        sf::Vector2f uv((float)(imageId%m_numCols)/(float)m_numCols, (float)(imageId/m_numCols)/(float)m_numRows);
+        uint32_t w = m_texture->getSize().x, h = m_texture->getSize().y;
+        m_sprite->setTextureRect(sf::IntRect(uv.x*w, uv.y*h, w/m_numCols, h/m_numRows));
+        m_sprite->setScale(scale, scale);
+        m_sprite->setPosition(posX, posY);
+        g_window.m_window->draw(*m_sprite);
     }
 
     void CleanUp()
     {
-        if (!m_loaded)
-            return;
-        glDeleteBuffers(1, &m_vbo);
-        glDeleteVertexArrays(1, &m_vao);
-        glDeleteTextures(1, &m_texId);
-        m_loaded = false;
+        if (m_sprite)
+            delete m_sprite;
+        if (m_sprite)
+            delete m_texture;
     }
-
 private:
-    GLuint m_vbo, m_vao, m_texId;
-    bool m_loaded;
+    sf::Texture *m_texture;
+    sf::Sprite *m_sprite;
+
     int m_numCols, m_numRows;
+    Animation * m_anim;
 };
