@@ -1,8 +1,5 @@
 #pragma once
 
-#define GLEW_STATIC
-#include <glew/glew.h>
-#include "GL/gl.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
@@ -13,14 +10,9 @@
 #include <functional>
 #include <stdint.h>
 #include <vector>
+#include <list>
 #include <map>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#define WIDTH 800
-#define HEIGHT 600
+#include <random>
 
 class Exception : public std::runtime_error
 {
