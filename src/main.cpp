@@ -154,12 +154,12 @@ void Update(double dt)
                     dy = (float)ty - g_player.GetY();
                     if (fabs(dx) > fabs(dy))
                     {
-                        if (dx < 0)
+                        if (dx < 0 && !g_world.HasObstacle(g_player.GetX()-16, g_player.GetY()))
                         {
                             dx = -16;
                             g_player.SetDir(LEFT);
                         }
-                        else if (dx > 0)
+                        else if (dx > 0 && !g_world.HasObstacle(g_player.GetX()+16, g_player.GetY()))
                         {
                             g_player.SetDir(RIGHT);
                             dx = 16;
@@ -168,12 +168,12 @@ void Update(double dt)
                     }
                     else
                     {
-                        if (dy < 0)
+                        if (dy < 0 && !g_world.HasObstacle(g_player.GetX(), g_player.GetY()-16))
                         {
                             g_player.SetDir(UP);
                             dy = -16;
                         }
-                        else if (dy > 0)
+                        if (dy > 0 && !g_world.HasObstacle(g_player.GetX(), g_player.GetY()+16))
                         {
                             g_player.SetDir(DOWN);
                             dy = 16;
