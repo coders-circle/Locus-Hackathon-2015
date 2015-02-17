@@ -35,6 +35,7 @@ void Initialize()
     Create16x16Sprite(g_redSprite, 0xFF0000FF);
 
     g_world.Init(WIDTH, HEIGHT);
+    g_world.SetViewArea(640, 480);
     
     for (float x=0; x<WIDTH; x+=16)
         CreateWall(x, 0);
@@ -69,15 +70,135 @@ void Initialize()
 
 }
 
+int tx=-1, ty=-1;
+void HandleMousePress(float mx, float my)
+{
+    if (mx < 0 || my < 0 || mx >= WIDTH || my >= HEIGHT)
+        return;
+    if (g_world.HasObstacle(mx, my))
+    {
+        std::cout << "Unreachable taget: " << mx << "  " << my << std::endl;
+        return;
+    }
+    tx = int(mx/16)*16;
+    ty = int(my/16)*16;
+
+    float dx = (float)tx - g_player.GetX();
+    float dy = 0;
+    if (dx < 0)
+        g_player.SetDir(LEFT);
+    else if (dx > 0)
+        g_player.SetDir(RIGHT);
+    else
+    {
+        dy = (float)ty - g_player.GetY();
+        if (dy < 0)
+            g_player.SetDir(UP);
+        else if (dy > 0)
+            g_player.SetDir(DOWN);
+    }
+}
+
+bool mdown = false;
 void Update(double dt)
 {
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+    {
+        if (!mdown)
+        {
+            auto pos = g_window.m_window->mapPixelToCoords(sf::Mouse::getPosition(*g_window.m_window));
+            HandleMousePress(pos.x, pos.y);
+            mdown = true;
+        }
+    }
+    else
+        mdown = false;
     
+    if (tx != -1 && ty != -1)
+    {
+        if (tx == g_player.GetX() && ty == g_player.GetY())
+        {
+            tx = -1;
+            ty = -1;
+        }
+        else
+        {
+            float dx = 0;
+            float dy = 0;
+            if (g_player.GetDir() == LEFT)
+                dx = -16;
+            else if (g_player.GetDir() == RIGHT)
+                dx = 16;
+            else if (g_player.GetDir() == UP)
+                dy = -16;
+            else if (g_player.GetDir() == DOWN)
+                dy = 16;
+
+            float nx = (float)g_player.GetX() + dx;
+            float ny = (float)g_player.GetY() + dy;
+            int trial = 0;
+            while (g_world.HasObstacle(nx, ny) && trial < 4)
+            {
+                if (dx < 0)
+                {
+                    g_player.SetDir(DOWN);
+                    dy = 16;
+                    dx = 0;
+                }
+                else if (dx > 0)
+                {
+                    g_player.SetDir(UP);
+                    dy = -16;
+                    dx = 0;
+                }
+                else if (dy > 0)
+                {
+                    g_player.SetDir(RIGHT);
+                    dx = 16;
+                    dy = 0;
+                }
+                else if (dy < 0)
+                {
+                    g_player.SetDir(LEFT);
+                    dx = -16;
+                    dy = 0;
+                }
+                nx = (float)g_player.GetX() + dx;
+                ny = (float)g_player.GetY() + dy;             
+                trial++;
+            }
+            
+        }
+        
+        if (g_player.GetDir() == RIGHT)
+        {
+            if (!g_world.HasObstacle(g_player.GetX() + 16, g_player.GetY()))
+                g_player.SetX(g_player.GetX() + 4);
+        }
+        else if (g_player.GetDir() == LEFT)
+        {
+            if (!g_world.HasObstacle(g_player.GetX() - 16, g_player.GetY()))
+                g_player.SetX(g_player.GetX() - 4);
+        }
+        else if (g_player.GetDir() == DOWN)
+        {
+            if (!g_world.HasObstacle(g_player.GetX(), g_player.GetY() + 16))
+                g_player.SetY(g_player.GetY() + 4);
+        }
+        else if (g_player.GetDir() == UP)
+        {
+            if (!g_world.HasObstacle(g_player.GetX(), g_player.GetY() - 16))
+                g_player.SetY(g_player.GetY() - 4);
+        }
+
+    }
+
     g_world.Update(dt);
 }
 
 void Render()
 {
-
+    g_world.SetCameraCenter(g_player.GetX(), g_player.GetY());
     g_world.Render();
 }
 

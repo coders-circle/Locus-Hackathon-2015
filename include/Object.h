@@ -42,6 +42,7 @@ public:
 
     void SetX(float x) { m_x = x; m_dirty = true; }
     void SetY(float y) { m_y = y; m_dirty = true; }
+    void SetPos(float x, float y) { m_x = x; m_y = y; m_dirty = true; }
     void SetDir(Direction dir) { m_dir = dir; m_dirty = true; }
 
 protected:
