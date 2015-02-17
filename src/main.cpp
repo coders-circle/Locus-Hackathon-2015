@@ -39,7 +39,7 @@ void Initialize()
     Create16x16Sprite(g_redSprite, 0xFF0000FF);
 
     g_world.Init(WIDTH, HEIGHT);
-    g_world.SetViewArea(640, 480);
+    g_world.SetViewArea(WIDTH/2, HEIGHT/2);
     
     for (float x=0; x<WIDTH; x+=16)
         CreateWall(x, 0);
@@ -90,14 +90,16 @@ void HandleMousePress(float mx, float my)
     ty = int(my/16)*16;
 
     float dx = (float)tx - g_player.GetX();
-    float dy = 0;
-    if (dx < 0)
-        g_player.SetDir(LEFT);
-    else if (dx > 0)
-        g_player.SetDir(RIGHT);
+    float dy = (float)ty - g_player.GetY();
+    if (fabs(dx) > fabs(dy))
+    {
+        if (dx < 0)
+            g_player.SetDir(LEFT);
+        else if (dx > 0)
+            g_player.SetDir(RIGHT);
+    }
     else
     {
-        dy = (float)ty - g_player.GetY();
         if (dy < 0)
             g_player.SetDir(UP);
         else if (dy > 0)
@@ -119,116 +121,123 @@ void Update(double dt)
     }
     else
         mdown = false;
-    
-    if (tx != -1 && ty != -1)
+    bool snapped = (int)g_player.GetX() % 16 == 0 && (int)g_player.GetY() % 16 == 0;
+    if ((tx != -1 && ty != -1) || !snapped)
     {
-        if (tx == g_player.GetX() && ty == g_player.GetY())
+        if (tx == g_player.GetX() && ty == g_player.GetY() && snapped)
         {
             tx = -1;
             ty = -1;
         }
         else
         {
-            float dx = 0;
-            float dy = 0;
-            if (g_player.GetDir() == LEFT)
-                dx = -16;
-            else if (g_player.GetDir() == RIGHT)
-                dx = 16;
-            else if (g_player.GetDir() == UP)
-                dy = -16;
-            else if (g_player.GetDir() == DOWN)
-                dy = 16;
-
-            float nx = (float)g_player.GetX() + dx;
-            float ny = (float)g_player.GetY() + dy;
             int trial = 0;
-
-            if (!g_world.HasObstacle(nx, ny))
+            if (snapped)
             {
-                dx = (float)tx - g_player.GetX();
-                dy = 0;
-                if (dx < 0)
-                {
+                float dx = 0;
+                float dy = 0;
+                if (g_player.GetDir() == LEFT)
                     dx = -16;
-                    g_player.SetDir(LEFT);
-                }
-                else if (dx > 0)
-                {
-                    g_player.SetDir(RIGHT);
+                else if (g_player.GetDir() == RIGHT)
                     dx = 16;
-                }
-                else
+                else if (g_player.GetDir() == UP)
+                    dy = -16;
+                else if (g_player.GetDir() == DOWN)
+                    dy = 16;
+
+                float nx = (float)g_player.GetX() + dx;
+                float ny = (float)g_player.GetY() + dy;
+                
+                if (!g_world.HasObstacle(nx, ny))
                 {
+                    dx = (float)tx - g_player.GetX();
                     dy = (float)ty - g_player.GetY();
-                    if (dy < 0)
+                    if (fabs(dx) > fabs(dy))
                     {
-                        g_player.SetDir(UP);
-                        dy = -16;
+                        if (dx < 0)
+                        {
+                            dx = -16;
+                            g_player.SetDir(LEFT);
+                        }
+                        else if (dx > 0)
+                        {
+                            g_player.SetDir(RIGHT);
+                            dx = 16;
+                        }
+                        dy = 0;
                     }
-                    else if (dy > 0)
+                    else
+                    {
+                        if (dy < 0)
+                        {
+                            g_player.SetDir(UP);
+                            dy = -16;
+                        }
+                        else if (dy > 0)
+                        {
+                            g_player.SetDir(DOWN);
+                            dy = 16;
+                        }
+                        dx = 0;
+                    }
+                }
+                nx = (float)g_player.GetX() + dx;
+                ny = (float)g_player.GetY() + dy;
+                while (g_world.HasObstacle(nx, ny) && trial < 4)
+                {
+                    if (dx < 0)
                     {
                         g_player.SetDir(DOWN);
                         dy = 16;
+                        dx = 0;
                     }
+                    else if (dx > 0)
+                    {
+                        g_player.SetDir(UP);
+                        dy = -16;
+                        dx = 0;
+                    }
+                    else if (dy > 0)
+                    {
+                        g_player.SetDir(RIGHT);
+                        dx = 16;
+                        dy = 0;
+                    }
+                    else if (dy < 0)
+                    {
+                        g_player.SetDir(LEFT);
+                        dx = -16;
+                        dy = 0;
+                    }
+                    nx = (float)g_player.GetX() + dx;
+                    ny = (float)g_player.GetY() + dy;             
+                    trial++;
                 }
             }
-            nx = (float)g_player.GetX() + dx;
-            ny = (float)g_player.GetY() + dy;
-            while (g_world.HasObstacle(nx, ny) && trial < 4)
+            if (trial < 4)
             {
-                if (dx < 0)
+                if (g_player.GetDir() == RIGHT)
                 {
-                    g_player.SetDir(DOWN);
-                    dy = 16;
-                    dx = 0;
+                    //if (!g_world.HasObstacle(g_player.GetX() + 16, g_player.GetY()))
+                        g_player.SetX(g_player.GetX() + 1);
                 }
-                else if (dx > 0)
+                else if (g_player.GetDir() == LEFT)
                 {
-                    g_player.SetDir(UP);
-                    dy = -16;
-                    dx = 0;
+                    //if (!g_world.HasObstacle(g_player.GetX() - 16, g_player.GetY()))
+                        g_player.SetX(g_player.GetX() - 1);
                 }
-                else if (dy > 0)
+                else if (g_player.GetDir() == DOWN)
                 {
-                    g_player.SetDir(RIGHT);
-                    dx = 16;
-                    dy = 0;
+                    //if (!g_world.HasObstacle(g_player.GetX(), g_player.GetY() + 16))
+                        g_player.SetY(g_player.GetY() + 1);
                 }
-                else if (dy < 0)
+                else if (g_player.GetDir() == UP)
                 {
-                    g_player.SetDir(LEFT);
-                    dx = -16;
-                    dy = 0;
+                    //if (!g_world.HasObstacle(g_player.GetX(), g_player.GetY() - 16))
+                        g_player.SetY(g_player.GetY() - 1);
                 }
-                nx = (float)g_player.GetX() + dx;
-                ny = (float)g_player.GetY() + dy;             
-                trial++;
             }
-            
         }
-        
-        if (g_player.GetDir() == RIGHT)
-        {
-            if (!g_world.HasObstacle(g_player.GetX() + 16, g_player.GetY()))
-                g_player.SetX(g_player.GetX() + 4);
-        }
-        else if (g_player.GetDir() == LEFT)
-        {
-            if (!g_world.HasObstacle(g_player.GetX() - 16, g_player.GetY()))
-                g_player.SetX(g_player.GetX() - 4);
-        }
-        else if (g_player.GetDir() == DOWN)
-        {
-            if (!g_world.HasObstacle(g_player.GetX(), g_player.GetY() + 16))
-                g_player.SetY(g_player.GetY() + 4);
-        }
-        else if (g_player.GetDir() == UP)
-        {
-            if (!g_world.HasObstacle(g_player.GetX(), g_player.GetY() - 16))
-                g_player.SetY(g_player.GetY() - 4);
-        }
-
     }
 
     g_world.Update(dt);
