@@ -14,6 +14,9 @@ struct Resources
     std::list<Sprite>::iterator peopleStart;
     size_t peopleLen;
 
+    std::list<Sprite>::iterator housesStart;
+    size_t houseLen;
+
     std::list<Object> walls;
     People player;
 

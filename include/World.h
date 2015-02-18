@@ -3,6 +3,7 @@
 #include "Background.h"
 #include "Water.h"
 
+extern Window g_window;
 class World
 {
 public:
@@ -18,6 +19,12 @@ public:
         m_miniMap.setViewport(sf::FloatRect(0.65f, 0.1f, 0.3f, 0.3f));
         m_miniMap.setSize(sf::Vector2f((float)m_width, (float)m_height));
         m_miniMap.setCenter(sf::Vector2f((float)m_width/2, (float)m_height/2));
+        
+        int w = g_window.m_window->getSize().x;
+        int h = g_window.m_window->getSize().y;
+        m_hud.setSize(sf::Vector2f(w, h));
+        m_hud.setCenter(sf::Vector2f(w/2, h/2));
+
 
         m_back.Init(width, height);
         m_water.Init(width, height);
@@ -99,7 +106,7 @@ public:
         m_water.Render();
         for (auto obj : m_objects)
             obj->Render();
-        g_window.m_window->setView(m_camera);
+        g_window.m_window->setView(m_hud);
     }
 
     void CleanUp()
@@ -132,6 +139,7 @@ private:
 
     sf::View m_camera;
     sf::View m_miniMap;
+    sf::View m_hud;
 
     std::vector<Object*> m_obstacles;
     std::map<Object*, sf::Vector2i> m_previousPos;

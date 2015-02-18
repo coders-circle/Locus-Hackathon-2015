@@ -286,8 +286,8 @@ void Render()
     g_world.Render();
 
     float px, py;
-    px = g_world.GetCamera().getCenter().x - 100;
-    py = g_world.GetCamera().getCenter().y - 50;
+    px = g_window.m_window->getSize().x/2 - 100;
+    py = g_window.m_window->getSize().y/2 - 50;
     g_bubble.Render(px, py, "Hello\nWorld\nGreat");
 }
 
