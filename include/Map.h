@@ -50,7 +50,7 @@ void CreateHouses()
 {
     Sprite* spr;
     spr = g_resources.AddSprite();
-    spr->Init("sprites/mountain.png");
+    spr->Init("sprites/forest1.png");
     Object obj;
     obj.Init(spr, 0, 0);
     g_resources.walls.push_back(obj);

@@ -204,7 +204,7 @@ int g_ix = 0, g_iy = 0;
 Object* g_currentObject = NULL;
 void HandleMousePress(float mx, float my)
 {
-    if (mx < 0 || my < 0 || mx >= WIDTH || my >= HEIGHT)
+    if (mx <= 0 || my <= 0 || mx >= WIDTH || my >= HEIGHT)
         return;
 
     if (g_disableInput)
