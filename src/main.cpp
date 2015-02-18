@@ -260,7 +260,7 @@ void HandleMousePress(float mx, float my)
                     g_disableInput = true;
                     g_interacting = true;
                     g_ix = obj->GetX() - 20;
-                    g_iy = obj->GetY() - 50;
+                    g_iy = obj->GetY() - 70;
                 }
                 return;
             }
@@ -276,7 +276,7 @@ void HandleMousePress(float mx, float my)
     pf.Start(&g_resources.player, tx, ty);
 }
 
-bool mdown = false;
+bool mdown = false, rmdown = false;
 bool moving = false;
 
 void Update(double dt)
@@ -293,13 +293,19 @@ void Update(double dt)
     else
         mdown = false;
 
-    //if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
-    //{
-    //    auto pos = g_window.m_window->mapPixelToCoords(sf::Mouse::getPosition(*g_window.m_window));
-    //    g_currentObject = g_world.GetObstacle(pos.x, pos.y);
-    //    if (g_currentObject && g_currentObject->GetTitle() != "")
-    //        std::cout << g_currentObject->GetTitle() << ": " << g_currentObject->GetInfo() << std::endl;
-    //}
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+    {
+        if (!rmdown)
+        {
+            auto pos = g_window.m_window->mapPixelToCoords(sf::Mouse::getPosition(*g_window.m_window));
+            g_currentObject = g_world.GetObstacle(pos.x, pos.y);
+            if (g_currentObject && g_currentObject->GetTitle() != "")
+                std::cout << g_currentObject->GetTitle() << ": " << g_currentObject->GetInfo() << std::endl;
+            rmdown = true;
+        }
+    }
+    else
+        rmdown = false;
 
     pf.Update();
     g_world.Update(dt);
@@ -372,7 +378,12 @@ void Render()
     }
     //g_bubble.Render(px, py, "Hello World Great");
 
-    
+    if (g_currentObject && g_currentObject->GetTitle() != "")
+    {
+        std::string info;
+        info = g_currentObject->GetTitle() + "\n------------\n" + g_currentObject->GetInfo();
+        g_bubble.Render(0, HEIGHT-50, info);
+    }
     g_world.ResetView();
 }
 

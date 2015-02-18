@@ -47,7 +47,7 @@ public:
         sf::Text textd;
         textd.setFont(*m_font);
         textd.setString(text.c_str());
-        textd.setCharacterSize(16);
+        textd.setCharacterSize(20);
         textd.setPosition(x + 38, y+32);
         textd.setColor(sf::Color::Black);
         g_window.m_window->draw(textd);

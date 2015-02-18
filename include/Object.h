@@ -13,6 +13,7 @@ public:
     { 
         m_spr = sprite; 
         m_x = x; m_y = y;
+        m_title = m_info = "";
     }
     virtual void Update(double dt) 
     {
@@ -40,8 +41,10 @@ public:
         return m_spr->GetHeight();
     }
 
-    virtual std::string GetTitle() { return ""; }
-    virtual std::string GetInfo() { return ""; }
+    std::string GetTitle() const { return m_title; }
+    std::string GetInfo() const { return m_info; }
+    void SetTitle(const std::string &title) { m_title = title; }
+    void SetInfo(const std::string &info) { m_info = info; }
 
     virtual void Interact() {}
 
@@ -62,7 +65,8 @@ protected:
     float m_x, m_y;
     Direction m_dir;
     
-    std::map<std::string, int> m_attributes;
+
+    std::string m_title, m_info;
 };
 
 

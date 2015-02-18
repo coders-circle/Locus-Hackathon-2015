@@ -28,6 +28,9 @@ void People::Init(Sprite* sprite, float x, float y)
     m_x = x;
     m_y = y;
     m_player = false;
+
+    m_title = "Human";
+    m_info = "Health: 50\nSkill: 20"; 
 }
 
 void People::Update(double dt)

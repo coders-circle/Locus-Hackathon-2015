@@ -45,6 +45,12 @@ void CreateHouse()
     objp->SetDir((Direction)rnd1(e1));
     g_world.AddObject(objp);
 
+    if (m_sprId < 3)
+    {
+        objp->SetTitle("House");
+        objp->SetInfo("Strength: 60");
+    }
+
 }
 void CreateHouses()
 {
