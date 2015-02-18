@@ -80,6 +80,29 @@ void GetFreeRandom(float& x, float &y)
     }
 }
 
+void GetFreeRandom72x72(float& x, float &y)
+{
+    while(true)
+    {
+        x = (float)xr(e1)*16.0f; y = (float)yr(e1)*16.0f;
+        float flag = false;
+        for (float xx=x; xx<x+72; xx+=16)
+        {
+            for (float yy=y; yy<y+72; yy+=16)
+            if (g_world.GetObstacle(xx, yy))
+            {
+                flag = true;
+                break;
+            }
+            if (flag)
+                break;
+        }
+        if (!flag)
+            return;
+    }
+}
+#include "Map.h"
+
 Bubble g_bubble;
 void Initialize()
 {
@@ -105,6 +128,8 @@ void Initialize()
         waterwalls[i].Init(NULL, (float)i*16, j);
         g_world.AddObject(&waterwalls[i]);
     }
+
+    CreateHouses();
     
     for (float x=0; x<WIDTH; x+=16)
         CreateWall(x, 0);
@@ -229,10 +254,14 @@ void HandleMousePress(float mx, float my)
                 obj->SetDir(dir1);
                 g_resources.player.SetDir(dir2);
                 obj->Interact();
-                g_disableInput = true;
-                g_interacting = true;
-                g_ix = obj->GetX() - 20;
-                g_iy = obj->GetY() - 50;
+
+                if (obj->GetType() == 1) // 1 == PEOPLE
+                {
+                    g_disableInput = true;
+                    g_interacting = true;
+                    g_ix = obj->GetX() - 20;
+                    g_iy = obj->GetY() - 50;
+                }
                 return;
             }
         }
