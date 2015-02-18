@@ -5,6 +5,7 @@
 #include "AI.h"
 #include "Resources.h"
 #include "Bubble.h"
+#include "DialogBox.h"
 
 #define WIDTH (int(640/16)*16)
 #define HEIGHT (int(480/16)*16)
@@ -19,6 +20,8 @@ sf::Vector3f g_playerPos(0.0f, 0.0f, 0.0f);
 //AmbientSound g_envSound;
 
 Sprite* spr1;
+
+DialogBox g_dialog;
 
 void CreateWall(float x, float y)
 {
@@ -80,7 +83,7 @@ void GetFreeRandom(float& x, float &y)
 Bubble g_bubble;
 void Initialize()
 {
-    if (!g_font.loadFromFile("DejaVuSans.ttf"))
+    if (!g_font.loadFromFile("sansation.ttf"))
         throw Exception("Can't load font");
 
     spr1 = g_resources.AddSprite();
@@ -91,7 +94,6 @@ void Initialize()
     auto spr = g_resources.AddSprite();
     spr->Init("sprites/box.png", 7, 1);
     g_bubble.Init(spr, &g_font);
-
     g_world.Init(WIDTH, HEIGHT);
     g_world.SetViewArea(WIDTH/1.5f, HEIGHT/1.5f);
 
@@ -134,6 +136,12 @@ void Initialize()
         g_world.AddObject(&tests[i]);
     }
 
+    g_dialog.Set(g_window.m_window, &g_font, {
+        "What do you want to do?",
+        "> Option 1",
+        "> Option 2"
+        });
+
     /*g_envSound.AddStaticUnit("cat1.wav", sf::Vector3f(10.0f, 0.0f, 0.0f), 1.0f);
     g_envSound.SetListenerPosition(g_playerPos);*/
 }
@@ -161,6 +169,12 @@ bool FindNearest(float &mx, float &my)
         return false;
     return true;
 }
+
+bool g_interacting = false;
+bool g_dialogShown = false;
+double g_interactionPeriod = 0.0;
+double g_maxInteractionPeriod = 1.0;
+int g_ix = 0, g_iy = 0;
 
 Object* g_currentObject = NULL;
 void HandleMousePress(float mx, float my)
@@ -215,6 +229,10 @@ void HandleMousePress(float mx, float my)
                 obj->SetDir(dir1);
                 g_resources.player.SetDir(dir2);
                 obj->Interact();
+                g_disableInput = true;
+                g_interacting = true;
+                g_ix = obj->GetX() - 20;
+                g_iy = obj->GetY() - 50;
                 return;
             }
         }
@@ -278,17 +296,55 @@ void Update(double dt)
         g_envSound.SetListenerPosition(g_playerPos);
     }*/
     //g_envSound.Update(dt);
+    if (g_interacting)
+    {
+        g_interactionPeriod += dt;
+        if (g_interactionPeriod >= g_maxInteractionPeriod)
+        {
+            g_interactionPeriod = 0;
+            g_interacting = false;
+            g_dialogShown = true;
+        }
+    }
+    if (g_dialogShown)
+    {
+        g_dialog.Update(dt);
+        switch (g_dialog.GetSelection())
+        {
+        case 1:
+            g_disableInput = false;
+            g_dialogShown = false;
+            break;
+        case 2:
+            g_disableInput = false;
+            g_dialogShown = false;
+            break;
+        }
+    }
 }
 
 void Render()
 {
+    
     g_world.SetCameraCenter(g_resources.player.GetX(), g_resources.player.GetY());
     g_world.Render();
 
     float px, py;
     px = g_window.m_window->getSize().x/2 - 100;
     py = g_window.m_window->getSize().y/2 - 50;
-    g_bubble.Render(px, py, "Hello\nWorld\nGreat");
+
+    if (g_interacting)
+    {
+        g_bubble.Render(g_ix, g_iy, "some random interaction text");
+    }
+    if (g_dialogShown)
+    {
+        g_dialog.Render();
+    }
+    //g_bubble.Render(px, py, "Hello World Great");
+
+    
+>>>>>>> 31c6b4f7db3a24d8f87c32689f344917b46c46e4
 }
 
 void CleanUp()
