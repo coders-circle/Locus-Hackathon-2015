@@ -1,5 +1,4 @@
 #include <common.h>
-#include "Timer.h"
 #include "Window.h"
 #include "World.h"
 #include "AmbientSound.h"
@@ -17,12 +16,15 @@ Resources g_resources;
 sf::Vector3f g_playerPos(0.0f, 0.0f, 0.0f);
 AmbientSound g_envSound;
 
+Sprite* spr1;
+
 void CreateWall(float x, float y)
 {
     Object obj;
-    obj.Init(&g_resources.sprites[0], x, y);
+    obj.Init(spr1, x, y);
     g_resources.walls.push_back(obj);
-    g_world.AddObject(&(*(--g_resources.walls.end())));
+    Object* objp = &(*(--g_resources.walls.end()));
+    g_world.AddObject(objp);
 }
 void Create16x16Sprite(Sprite& spr, uint32_t rgba)
 {
@@ -32,24 +34,52 @@ void Create16x16Sprite(Sprite& spr, uint32_t rgba)
     spr.Init(pixels, 16, 16);
 
 }
-void Create16x32Sprite(Sprite& spr, uint32_t rgba)
+void Create32x32Sprite(Sprite& spr, uint32_t rgba)
 {
-    sf::Uint8 pixels[16*32*4];
-    for (int i=0; i<16*32*4; i+=4)
+    sf::Uint8 pixels[32*32*4];
+    for (int i=0; i<32*32*4; i+=4)
         (*(int*)&pixels[i]) = rgba;
-    spr.Init(pixels, 16, 32);
+    spr.Init(pixels, 32, 32);
 
 }
+
+void CreatePeopleSprite(int x, int y, int w, int h, int ncols, int nrows)
+{
+    Sprite* spr;
+    spr = g_resources.AddSprite();
+    spr->Init("sprites/people.png", x, y, w, h, ncols, nrows);
+}
+void CreatePeopleSprs()
+{
+    CreatePeopleSprite(0, 1, 16, 16*4, 1, 4);
+    g_resources.peopleStart = --g_resources.sprites.end();
+    CreatePeopleSprite(16, 1, 16*3, 16*4, 3, 4);
+    g_resources.peopleLen = 2;
+}
+
+
+std::random_device rd;
+std::default_random_engine e1(rd());
+std::uniform_int_distribution<int> xr(0, WIDTH/16-1);
+std::uniform_int_distribution<int> yr(0, HEIGHT/16-1);
+    
+void GetFreeRandom(float& x, float &y)
+{
+    while(true)
+    {
+        x = (float)xr(e1)*16.0f; y = (float)yr(e1)*16.0f;
+        if (!g_world.GetObstacle(x, y))
+            return;
+    }
+}
+
 void Initialize()
 {
-    g_resources.sprites.push_back(Sprite());
-    g_resources.sprites.push_back(Sprite());
-    Create16x16Sprite(g_resources.sprites[0], 0xFF000000);
-#if PHEIGHT == 16
-    Create16x16Sprite(g_resources.sprites[1], 0xFF0000FF);
-#else
-    Create16x32Sprite(g_resources.sprites[1], 0xFF0000FF);
-#endif
+    spr1 = g_resources.AddSprite();
+    Create16x16Sprite(*spr1, 0xFF000000);
+    //Create16x16Sprite(*spr2, 0xFF0000FF);
+
+    CreatePeopleSprs();
 
     g_world.Init(WIDTH, HEIGHT);
     g_world.SetViewArea(WIDTH/2, HEIGHT/2);
@@ -63,43 +93,110 @@ void Initialize()
     for (float y=16; y<HEIGHT; y+=16)
         CreateWall(WIDTH-16, y);
     
-    std::random_device rd;
-    std::default_random_engine e1(rd());
-    std::uniform_int_distribution<int> xr(0, WIDTH/16-1);
-    std::uniform_int_distribution<int> yr(0, HEIGHT/16-1);
     for (int i=0; i<200; ++i)
     {
         float x = (float)xr(e1)*16.0f, y = (float)yr(e1)*16.0f;
-        if (!g_world.HasObstacle(x, y))
+        if (!g_world.GetObstacle(x, y))
             CreateWall(x, y);
     }
 
     bool done = false;
-    do
+    float x, y;
+    GetFreeRandom(x, y);
+    g_resources.player.Init(NULL, x, y);
+    g_world.AddObject(&g_resources.player);
+    
+    static People tests[32];
+    for (int i=0; i<32; ++i)
     {
-        float x = (float)xr(e1)*16.0f, y = (float)yr(e1)*16.0f;
-        if (done = !g_world.HasObstacle(x, y))
-        {
-            g_resources.player.Init(&g_resources.sprites[1], x, y);
-            g_world.AddObject(&g_resources.player);
-        }
-    } while (!done);
+        GetFreeRandom(x, y);
+        tests[i].Init(NULL, x, y);
+        g_world.AddObject(&tests[i]);
+    }
 
     g_envSound.AddStaticUnit("cat1.wav", sf::Vector3f(10.0f, 0.0f, 0.0f), 1.0f);
     g_envSound.SetListenerPosition(g_playerPos);
 }
 
 PathFinding pf;
+inline float SIGN(float x)
+{
+    if (x < 0) return -1;
+    return 1;
+}
+bool FindNearest(float &mx, float &my)
+{
+    float dx = SIGN(mx - g_resources.player.GetX()) * 16;
+    float dy = SIGN(my - g_resources.player.GetY()) * 16;
+    if (!g_world.GetObstacle(mx+dx, my))
+        mx = mx + dx;
+    else if (!g_world.GetObstacle(mx, my+dy))
+        my = my + dy;
+    else if (!g_world.GetObstacle(mx+dx, my+dy))
+    {
+        mx += dx;
+        my += dy;
+    }
+    else
+        return false;
+    return true;
+}
+
+Object* g_currentObject = NULL;
 void HandleMousePress(float mx, float my)
 {
     if (mx < 0 || my < 0 || mx >= WIDTH || my >= HEIGHT)
         return;
-    if (g_world.HasObstacle(mx, my))
-    {
-        std::cout << "Unreachable taget: " << mx << "  " << my << std::endl;
-        return;
-    }
     bool snapped = (int)g_resources.player.GetX() % 16 == 0 && (int)g_resources.player.GetY() % 16 == 0;
+    
+    Object* obj;
+    if (obj = g_world.GetObstacle(mx, my))
+    {
+        mx = float(int(mx/16)*16);
+        my = float(int (my/16)*16);
+        float dx = g_resources.player.GetX() - mx;
+        float dy = g_resources.player.GetY() - my;
+        if (fabs(dx) <= 16  && dy == 0 || fabs(dy) <= 16 && dx == 0)
+        {
+            if (obj != &g_resources.player)
+            {
+                Direction dir1, dir2;
+                if (fabs(dx) > fabs(dy))
+                {
+                    if (dx < 0)
+                    {
+                        dir1 = LEFT;
+                        dir2 = RIGHT;
+                    }
+                    else
+                    {
+                        dir1 = RIGHT;
+                        dir2 = LEFT;
+                    }
+                }
+                else
+                {
+                    if (dy < 0)
+                    {
+                        dir1 = UP;
+                        dir2 = DOWN;
+                    }
+                    else
+                    {
+                        dir1 = DOWN;
+                        dir2 = UP;
+                    }
+                
+                }
+                obj->SetDir(dir1);
+                g_resources.player.SetDir(dir2);
+                obj->Interact();
+                return;
+            }
+        }
+        if (!FindNearest(mx, my))
+            return;
+    }
     if (!snapped)
         return;
     int tx = int(mx/16)*16;
@@ -110,6 +207,7 @@ void HandleMousePress(float mx, float my)
 
 bool mdown = false;
 bool moving = false;
+
 void Update(double dt)
 {
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
@@ -123,6 +221,14 @@ void Update(double dt)
     }
     else
         mdown = false;
+
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+    {
+        auto pos = g_window.m_window->mapPixelToCoords(sf::Mouse::getPosition(*g_window.m_window));
+        g_currentObject = g_world.GetObstacle(pos.x, pos.y);
+        if (g_currentObject && g_currentObject->GetTitle() != "")
+            std::cout << g_currentObject->GetTitle() << ": " << g_currentObject->GetInfo() << std::endl;
+    }
 
     pf.Update();
     g_world.Update(dt);
@@ -166,7 +272,7 @@ int main(int argc, char* argv[])
 {
     try
     {
-        g_window.Create(L"सुन्दर शान्त" , WIDTH, HEIGHT);
+        g_window.Create("Khatra Game", int(800/16)*16, int(600/16)*16);
         Initialize();
         g_window.SetUpdateCallback(Update);
         g_window.SetRenderCallback(Render);

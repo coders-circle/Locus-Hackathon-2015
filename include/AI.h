@@ -1,6 +1,6 @@
 #pragma once
 
-#define PHEIGHT 16   // Or making this 32
+#define TSZ 16
 extern World g_world;
 class PathFinding
 {
@@ -55,13 +55,13 @@ public:
                     float dx = 0;
                     float dy = 0;
                     if (obj->GetDir() == LEFT)
-                        dx = -16;
+                        dx = -TSZ;
                     else if (obj->GetDir() == RIGHT)
-                        dx = 16;
+                        dx = TSZ;
                     else if (obj->GetDir() == UP)
-                        dy = -16;
+                        dy = -TSZ;
                     else if (obj->GetDir() == DOWN)
-                        dy = PHEIGHT;
+                        dy = TSZ;
 
                     float nx = (float)obj->GetX() + dx;
                     float ny = (float)obj->GetY() + dy;
@@ -69,39 +69,37 @@ public:
                     float ddx = (float) tx - obj->GetX();
                     float ddy = (float) ty - obj->GetY();
                     
-                    if (((PHEIGHT==32&&dy > 0) || !g_world.HasObstacle(nx, ny)) && (PHEIGHT == 16 || dy < 0 || !g_world.HasObstacle(nx, ny+16)))
+                    if (!g_world.GetObstacle(nx, ny))
                     {
                         dx = ddx;
                         dy = ddy;
                         if (fabs(dx) > fabs(dy))
                         {
-                            if (dx < 0 && !g_world.HasObstacle(obj->GetX()-16, obj->GetY()) && (PHEIGHT == 16 || !g_world.HasObstacle(obj->GetX()-16, obj->GetY()+16)))
+                            if (dx < 0 && !g_world.GetObstacle(obj->GetX()-TSZ, obj->GetY()))
                             {
-                                dx = -16;
+                                dx = -TSZ;
                                 obj->SetDir(LEFT);
-                                dy = 0;
                             }
-                            else if (dx > 0 && !g_world.HasObstacle(obj->GetX()+16, obj->GetY()) && (PHEIGHT == 16 || !g_world.HasObstacle(obj->GetX()+16, obj->GetY()+16)))
+                            else if (dx > 0 && !g_world.GetObstacle(obj->GetX()+TSZ, obj->GetY()))
                             {
                                 obj->SetDir(RIGHT);
-                                dx = 16;
-                                dy = 0;
+                                dx = TSZ;
                             }
+                            dy = 0;
                         }
                         else
                         {
-                            if (dy < 0 && !g_world.HasObstacle(obj->GetX(), obj->GetY()-16))
+                            if (dy < 0 && !g_world.GetObstacle(obj->GetX(), obj->GetY()-TSZ))
                             {
                                 obj->SetDir(UP);
-                                dy = -16;
-                                dx = 0;
+                                dy = -TSZ;
                             }
-                            if (dy > 0 && !g_world.HasObstacle(obj->GetX(), obj->GetY()+PHEIGHT))
+                            if (dy > 0 && !g_world.GetObstacle(obj->GetX(), obj->GetY()+TSZ))
                             {
                                 obj->SetDir(DOWN);
-                                dy = 32;
-                                dx = 0;
+                                dy = TSZ;
                             }
+                            dx = 0;
                         }
                     }
                     else
@@ -109,30 +107,30 @@ public:
                         if (dx != 0)
                         {
                             dx = 0;
-                            if (ddy < 0 && !g_world.HasObstacle(obj->GetX(), obj->GetY()-16))
+                            if (ddy < 0 && !g_world.GetObstacle(obj->GetX(), obj->GetY()-TSZ))
                             {
                                 obj->SetDir(UP);
-                                dy = -16;
+                                dy = -TSZ;
                             }
-                            if (ddy > 0 && !g_world.HasObstacle(obj->GetX(), obj->GetY()+16) && (PHEIGHT == 16 || !g_world.HasObstacle(obj->GetX(), obj->GetY()+32)))
+                            if (ddy > 0 && !g_world.GetObstacle(obj->GetX(), obj->GetY()+TSZ))
                             {
                                 obj->SetDir(DOWN);
-                                dy = 32;
+                                dy = TSZ;
                             }
                         }
                         else if (dy != 0)
                         {
-                            if (ddx < 0 && !g_world.HasObstacle(obj->GetX()-16, obj->GetY()) && (PHEIGHT == 16 || !g_world.HasObstacle(obj->GetX()-16, obj->GetY()+16)))
+                            dy = 0;
+                            if (ddx < 0 && !g_world.GetObstacle(obj->GetX()-TSZ, obj->GetY()))
                             {
-                                dx = -16;
+                                dx = -TSZ;
                                 obj->SetDir(LEFT);
                             }
-                            else if (ddx > 0 && !g_world.HasObstacle(obj->GetX()+16, obj->GetY()) && (PHEIGHT == 16 || !g_world.HasObstacle(obj->GetX()+16, obj->GetY()+16)))
+                            else if (ddx > 0 && !g_world.GetObstacle(obj->GetX()+TSZ, obj->GetY()))
                             {
                                 obj->SetDir(RIGHT);
-                                dx = 16;
+                                dx = TSZ;
                             }
-                            dy = 0;
                         }
                     }
                     if (dx == 0 && dy == 0)

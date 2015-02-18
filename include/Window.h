@@ -1,9 +1,10 @@
 #pragma once
+#include "Timer.h"
 
 class Window
 {
 public:
-    void Create(const std::wstring &title, uint32_t width, uint32_t height)
+    void Create(const std::string &title, uint32_t width, uint32_t height)
     {
        m_window = new sf::RenderWindow(sf::VideoMode(width, height), title.c_str());
     }

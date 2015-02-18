@@ -10,10 +10,12 @@ public:
         m_height = height;
         m_wm = uint32_t(m_width/16);
         m_hm = uint32_t(m_height/16);
-        m_obstacles.resize(m_wm*m_hm, false);
+        m_obstacles.resize(m_wm*m_hm, NULL);
         SetViewArea((float)m_width, (float)m_height);
 
-        m_miniMap.setViewport(sf::FloatRect(0.75f, 0.05f, 0.25f, 0.25f));
+        m_miniMap.setViewport(sf::FloatRect(0.75f, 0.05f, 0.20f, 0.25f));
+        m_miniMap.setSize(sf::Vector2f((float)m_width, (float)m_height));
+        m_miniMap.setCenter(sf::Vector2f((float)m_width/2, (float)m_height/2));
     }
     void SetViewArea(float viewWidth, float viewHeight)
     {
@@ -24,9 +26,13 @@ public:
         m_objects.push_back(object);
         int x = int(object->GetX()/16), y = int(object->GetY()/16);
         int w = int(object->GetWidth()/16), h = int(object->GetHeight()/16);
+        if (w+x >= m_width/16)
+            w -= ((w+x) - m_width/16);
+        if (h+y >= m_height/16)
+            h -= ((h+y) - m_height/16);
         for (int i=x; i<x+w; ++i)
         for (int j=y; j<y+h; ++j)
-            m_obstacles[j*m_wm+i] = true;
+            m_obstacles[j*m_wm+i] = object;
         
         m_previousPos[object] = sf::Vector2i(x, y);
     }
@@ -37,29 +43,39 @@ public:
         {
             obj->Update(dt);
             // For moved objects, update the obstacle map
-            if (obj->IsDirty())
+            //if (obj->IsDirty())
             {
                 int nx = int(obj->GetX()/16), ny = int(obj->GetY()/16);
                 sf::Vector2i pxy = m_previousPos[obj];
                 if (nx < 0 || ny < 0 || nx > m_width || ny > m_height)
-                    return;
+                    continue;
                 if (nx != pxy.x || ny != pxy.y)
                 {
                     int w = int(obj->GetWidth()/16), h = int(obj->GetHeight()/16);
+                    int x = pxy.x, y = pxy.y;
+                    if (w+x >= m_width/16)
+                        w -= ((w+x) - m_width/16);
+                    if (h+y >= m_height/16)
+                        h -= ((h+y) - m_height/16);
                     for (int i=pxy.x; i<pxy.x+w; ++i)
                     for (int j=pxy.y; j<pxy.y+h; ++j)
-                        m_obstacles[j*m_wm+i] = false;
+                        m_obstacles[j*m_wm+i] = NULL;
 
+                    x = nx; y = ny;
+                    if (w+x >= m_width/16)
+                        w -= ((w+x) - m_width/16);
+                    if (h+y >= m_height/16)
+                        h -= ((h+y) - m_height/16);
                     for (int i=nx; i<nx+w; ++i)
                     for (int j=ny; j<ny+h; ++j)
-                        m_obstacles[j*m_wm+i] = true;
+                        m_obstacles[j*m_wm+i] = obj;
                     m_previousPos[obj] = sf::Vector2i(nx, ny);
                 }
             }
         }
     }
 
-    bool HasObstacle(float x, float y)
+    Object* GetObstacle(float x, float y)
     {
         int xx = int(x/16), yy = int(y/16);
         return m_obstacles[xx+yy*m_wm];
@@ -103,6 +119,6 @@ private:
     sf::View m_camera;
     sf::View m_miniMap;
 
-    std::vector<bool> m_obstacles;
+    std::vector<Object*> m_obstacles;
     std::map<Object*, sf::Vector2i> m_previousPos;
 };
