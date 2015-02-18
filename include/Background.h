@@ -21,6 +21,7 @@ public:
     {
         m_spr.CleanUp();
     }
+
 private:
     Sprite m_spr;
     uint32_t w, h;

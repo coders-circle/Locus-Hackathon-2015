@@ -28,11 +28,15 @@ public:
 
     virtual float GetWidth() const
     {
+        if (!m_spr)
+            return 16;
         return m_spr->GetWidth();
     }
 
     virtual float GetHeight() const
     {
+        if (!m_spr)
+            return 16;
         return m_spr->GetHeight();
     }
 

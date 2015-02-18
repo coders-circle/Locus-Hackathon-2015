@@ -4,6 +4,7 @@
 #include "AmbientSound.h"
 #include "AI.h"
 #include "Resources.h"
+#include "Bubble.h"
 
 #define WIDTH (int(800/16)*16)
 #define HEIGHT (int(600/16)*16)
@@ -12,6 +13,7 @@
 Window g_window;
 World g_world;
 Resources g_resources;
+bool g_disableInput = false;
 
 sf::Vector3f g_playerPos(0.0f, 0.0f, 0.0f);
 //AmbientSound g_envSound;
@@ -62,6 +64,8 @@ std::random_device rd;
 std::default_random_engine e1(rd());
 std::uniform_int_distribution<int> xr(0, WIDTH/16-1);
 std::uniform_int_distribution<int> yr(0, HEIGHT/16-1);
+
+sf::Font g_font;
     
 void GetFreeRandom(float& x, float &y)
 {
@@ -73,17 +77,32 @@ void GetFreeRandom(float& x, float &y)
     }
 }
 
+Bubble g_bubble;
 void Initialize()
 {
+    if (!g_font.loadFromFile("DejaVuSans.ttf"))
+        throw Exception("Can't load font");
+
     spr1 = g_resources.AddSprite();
     Create16x16Sprite(*spr1, 0xFF000000);
     //Create16x16Sprite(*spr2, 0xFF0000FF);
 
     CreatePeopleSprs();
-
+    auto spr = g_resources.AddSprite();
+    spr->Init("sprites/box.png", 7, 1);
+    g_bubble.Init(spr, &g_font);
 
     g_world.Init(WIDTH, HEIGHT);
     g_world.SetViewArea(WIDTH/2, HEIGHT/2);
+
+    //Create Obstacles at HEIGHT - 4*16
+    static Object waterwalls[WIDTH/16];
+    for (int i=0; i<WIDTH/16; i++)
+    for (float j = HEIGHT-4*16; j < HEIGHT; j+=16)
+    {
+        waterwalls[i].Init(NULL, (float)i*16, j);
+        g_world.AddObject(&waterwalls[i]);
+    }
     
     for (float x=0; x<WIDTH; x+=16)
         CreateWall(x, 0);
@@ -148,6 +167,10 @@ void HandleMousePress(float mx, float my)
 {
     if (mx < 0 || my < 0 || mx >= WIDTH || my >= HEIGHT)
         return;
+
+    if (g_disableInput)
+        return;
+    // Move object to target by clicking
     bool snapped = (int)g_resources.player.GetX() % 16 == 0 && (int)g_resources.player.GetY() % 16 == 0;
     
     Object* obj;
@@ -223,13 +246,13 @@ void Update(double dt)
     else
         mdown = false;
 
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
-    {
-        auto pos = g_window.m_window->mapPixelToCoords(sf::Mouse::getPosition(*g_window.m_window));
-        g_currentObject = g_world.GetObstacle(pos.x, pos.y);
-        if (g_currentObject && g_currentObject->GetTitle() != "")
-            std::cout << g_currentObject->GetTitle() << ": " << g_currentObject->GetInfo() << std::endl;
-    }
+    //if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+    //{
+    //    auto pos = g_window.m_window->mapPixelToCoords(sf::Mouse::getPosition(*g_window.m_window));
+    //    g_currentObject = g_world.GetObstacle(pos.x, pos.y);
+    //    if (g_currentObject && g_currentObject->GetTitle() != "")
+    //        std::cout << g_currentObject->GetTitle() << ": " << g_currentObject->GetInfo() << std::endl;
+    //}
 
     pf.Update();
     g_world.Update(dt);
@@ -261,6 +284,11 @@ void Render()
 {
     g_world.SetCameraCenter(g_resources.player.GetX(), g_resources.player.GetY());
     g_world.Render();
+
+    float px, py;
+    px = g_world.GetCamera().getCenter().x - 100;
+    py = g_world.GetCamera().getCenter().y - 50;
+    g_bubble.Render(px, py, "Hello\nWorld\nGreat");
 }
 
 void CleanUp()

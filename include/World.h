@@ -1,6 +1,7 @@
 #pragma once
 #include "Object.h"
 #include "Background.h"
+#include "Water.h"
 
 class World
 {
@@ -19,6 +20,7 @@ public:
         m_miniMap.setCenter(sf::Vector2f((float)m_width/2, (float)m_height/2));
 
         m_back.Init(width, height);
+        m_water.Init(width, height);
     }
     void SetViewArea(float viewWidth, float viewHeight)
     {
@@ -88,10 +90,13 @@ public:
     {
         g_window.m_window->setView(m_camera);
         m_back.Render();
+        m_water.Render();
         for (auto obj : m_objects)
             obj->Render();
+
         g_window.m_window->setView(m_miniMap);
         m_back.Render();
+        m_water.Render();
         for (auto obj : m_objects)
             obj->Render();
         g_window.m_window->setView(m_camera);
@@ -102,6 +107,7 @@ public:
         for (auto obj : m_objects)
             obj->CleanUp();
         m_back.CleanUp();
+        m_water.CleanUp();
     }
 
     void SetCameraCenter(float x, float y)
@@ -117,6 +123,8 @@ public:
         m_camera.setCenter(sf::Vector2f(x, y));
     }
 
+    const sf::View &GetCamera() const { return m_camera; }
+
 private:
     std::vector<Object*> m_objects;
     uint32_t m_width, m_height;
@@ -129,4 +137,5 @@ private:
     std::map<Object*, sf::Vector2i> m_previousPos;
 
     Background m_back;
+    Water m_water;
 };
