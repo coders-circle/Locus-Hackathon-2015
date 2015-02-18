@@ -48,7 +48,17 @@ void CreateHouse()
 }
 void CreateHouses()
 {
+    Sprite* spr;
+    spr = g_resources.AddSprite();
+    spr->Init("sprites/mountain.png");
+    Object obj;
+    obj.Init(spr, 0, 0);
+    g_resources.walls.push_back(obj);
+    Object* objp = &(*(--g_resources.walls.end()));
+    g_world.AddObject(objp);
+
     CreateHouseSprs();
     for (int i=0; i<10; ++i)
         CreateHouse();
 }
+
