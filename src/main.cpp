@@ -83,7 +83,7 @@ void GetFreeRandom(float& x, float &y)
 Bubble g_bubble;
 void Initialize()
 {
-    if (!g_font.loadFromFile("sansation.ttf"))
+    if (!g_font.loadFromFile("DejaVuSans.ttf"))
         throw Exception("Can't load font");
 
     spr1 = g_resources.AddSprite();
@@ -344,7 +344,7 @@ void Render()
     //g_bubble.Render(px, py, "Hello World Great");
 
     
->>>>>>> 31c6b4f7db3a24d8f87c32689f344917b46c46e4
+    g_world.ResetView();
 }
 
 void CleanUp()

@@ -21,7 +21,7 @@ public:
         const float sprsz = 32;
         m_spr->Render(px, py, 1.0f, 1.0f, 4);
         px += sprsz;
-        const int width = 5;
+        const int width = 10;
         for (int i=0; i<width; ++i, px+=sprsz)
             m_spr->Render(px, py, 1.0f, 1.0f, 6);
         m_spr->Render(px, py, 1.0f, 1.0f, 2);

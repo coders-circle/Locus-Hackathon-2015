@@ -86,6 +86,10 @@ public:
             }
         }
     }
+    void ResetView()
+    {
+        g_window.m_window->setView(m_camera);
+    }
 
     Object* GetObstacle(float x, float y)
     {
