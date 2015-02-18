@@ -397,7 +397,7 @@ int main(int argc, char* argv[])
 {
     try
     {
-        g_window.Create("Khatra Game", int(800/16)*16, int(600/16)*16);
+        g_window.Create("Rise of the Village", int(800/16)*16, int(600/16)*16);
         Initialize();
         g_window.SetUpdateCallback(Update);
         g_window.SetRenderCallback(Render);

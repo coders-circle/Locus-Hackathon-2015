@@ -17,7 +17,7 @@ public:
             if (ch == '\n')
                 lns++;
 
-        lns = (int)std::ceil((float)lns/2.0f);
+        lns = (int)std::ceil((float)lns/1.5f);
         const float sprsz = 32;
         m_spr->Render(px, py, 1.0f, 1.0f, 4);
         px += sprsz;
