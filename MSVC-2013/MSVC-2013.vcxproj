@@ -68,15 +68,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\AI.h" />
     <ClInclude Include="..\include\AmbientSound.h" />
     <ClInclude Include="..\include\AmbientSoundUnit.h" />
+    <ClInclude Include="..\include\Background.h" />
+    <ClInclude Include="..\include\Bubble.h" />
     <ClInclude Include="..\include\common.h" />
     <ClInclude Include="..\include\DialogBox.h" />
     <ClInclude Include="..\include\Menu.h" />
+    <ClInclude Include="..\include\Object.h" />
+    <ClInclude Include="..\include\People.h" />
+    <ClInclude Include="..\include\Resources.h" />
     <ClInclude Include="..\include\Sprite.h" />
     <ClInclude Include="..\include\Texture.h" />
     <ClInclude Include="..\include\Timer.h" />
+    <ClInclude Include="..\include\Water.h" />
     <ClInclude Include="..\include\Window.h" />
+    <ClInclude Include="..\include\World.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp" />
