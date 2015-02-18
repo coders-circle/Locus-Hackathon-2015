@@ -14,7 +14,7 @@ World g_world;
 Resources g_resources;
 
 sf::Vector3f g_playerPos(0.0f, 0.0f, 0.0f);
-AmbientSound g_envSound;
+//AmbientSound g_envSound;
 
 Sprite* spr1;
 
@@ -115,8 +115,8 @@ void Initialize()
         g_world.AddObject(&tests[i]);
     }
 
-    g_envSound.AddStaticUnit("cat1.wav", sf::Vector3f(10.0f, 0.0f, 0.0f), 1.0f);
-    g_envSound.SetListenerPosition(g_playerPos);
+    /*g_envSound.AddStaticUnit("cat1.wav", sf::Vector3f(10.0f, 0.0f, 0.0f), 1.0f);
+    g_envSound.SetListenerPosition(g_playerPos);*/
 }
 
 PathFinding pf;
@@ -234,7 +234,7 @@ void Update(double dt)
     pf.Update();
     g_world.Update(dt);
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+    /*if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
     {
         g_playerPos.x--;
         g_envSound.SetListenerPosition(g_playerPos);
@@ -253,8 +253,8 @@ void Update(double dt)
     {
         g_playerPos.y--;
         g_envSound.SetListenerPosition(g_playerPos);
-    }
-    g_envSound.Update(dt);
+    }*/
+    //g_envSound.Update(dt);
 }
 
 void Render()
