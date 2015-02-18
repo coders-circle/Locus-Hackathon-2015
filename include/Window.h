@@ -1,4 +1,5 @@
 #pragma once
+#include "Timer.h"
 
 class Window
 {
@@ -26,8 +27,6 @@ public:
                 }
             }
 
-            std::string title = "FPS: " + std::to_string(timer.GetFPS());
-            m_window->setTitle(title.c_str());
             timer.Update([this](double dt){ 
                 if (m_update)
                     m_update(dt); 

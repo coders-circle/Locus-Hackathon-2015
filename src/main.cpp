@@ -1,37 +1,30 @@
 #include <common.h>
-#include "Timer.h"
 #include "Window.h"
 #include "World.h"
 #include "AmbientSound.h"
-#include "Menu.h"
-
-#include "DialogBox.h"
+#include "AI.h"
+#include "Resources.h"
 
 #define WIDTH (int(800/16)*16)
 #define HEIGHT (int(600/16)*16)
 
 
 Window g_window;
-Sprite g_blackSprite;
-Sprite g_redSprite;
 World g_world;
-std::list<Object> g_walls;
-Object g_player;
-
-Menu g_menu;
-sf::Font g_font;
-
-DialogBox g_testDialog;
+Resources g_resources;
 
 sf::Vector3f g_playerPos(0.0f, 0.0f, 0.0f);
-AmbientSound g_envSound;
+//AmbientSound g_envSound;
+
+Sprite* spr1;
 
 void CreateWall(float x, float y)
 {
     Object obj;
-    obj.Init(&g_blackSprite, x, y);
-    g_walls.push_back(obj);
-    g_world.AddObject(&(*(--g_walls.end())));
+    obj.Init(spr1, x, y);
+    g_resources.walls.push_back(obj);
+    Object* objp = &(*(--g_resources.walls.end()));
+    g_world.AddObject(objp);
 }
 void Create16x16Sprite(Sprite& spr, uint32_t rgba)
 {
@@ -41,10 +34,52 @@ void Create16x16Sprite(Sprite& spr, uint32_t rgba)
     spr.Init(pixels, 16, 16);
 
 }
+void Create32x32Sprite(Sprite& spr, uint32_t rgba)
+{
+    sf::Uint8 pixels[32*32*4];
+    for (int i=0; i<32*32*4; i+=4)
+        (*(int*)&pixels[i]) = rgba;
+    spr.Init(pixels, 32, 32);
+
+}
+
+void CreatePeopleSprite(int x, int y, int w, int h, int ncols, int nrows)
+{
+    Sprite* spr;
+    spr = g_resources.AddSprite();
+    spr->Init("sprites/people.png", x, y, w, h, ncols, nrows);
+}
+void CreatePeopleSprs()
+{
+    CreatePeopleSprite(0, 1, 16, 16*4, 1, 4);
+    g_resources.peopleStart = --g_resources.sprites.end();
+    CreatePeopleSprite(16, 1, 16*3, 16*4, 3, 4);
+    g_resources.peopleLen = 2;
+}
+
+
+std::random_device rd;
+std::default_random_engine e1(rd());
+std::uniform_int_distribution<int> xr(0, WIDTH/16-1);
+std::uniform_int_distribution<int> yr(0, HEIGHT/16-1);
+    
+void GetFreeRandom(float& x, float &y)
+{
+    while(true)
+    {
+        x = (float)xr(e1)*16.0f; y = (float)yr(e1)*16.0f;
+        if (!g_world.GetObstacle(x, y))
+            return;
+    }
+}
+
 void Initialize()
 {
-    Create16x16Sprite(g_blackSprite, 0xFF000000);
-    Create16x16Sprite(g_redSprite, 0xFF0000FF);
+    spr1 = g_resources.AddSprite();
+    Create16x16Sprite(*spr1, 0xFF000000);
+    //Create16x16Sprite(*spr2, 0xFF0000FF);
+
+    CreatePeopleSprs();
 
     g_world.Init(WIDTH, HEIGHT);
     g_world.SetViewArea(WIDTH/2, HEIGHT/2);
@@ -58,83 +93,123 @@ void Initialize()
     for (float y=16; y<HEIGHT; y+=16)
         CreateWall(WIDTH-16, y);
     
-    std::random_device rd;
-    std::default_random_engine e1(rd());
-    std::uniform_int_distribution<int> xr(0, WIDTH/16-1);
-    std::uniform_int_distribution<int> yr(0, HEIGHT/16-1);
     for (int i=0; i<200; ++i)
     {
         float x = (float)xr(e1)*16.0f, y = (float)yr(e1)*16.0f;
-        if (!g_world.HasObstacle(x, y))
+        if (!g_world.GetObstacle(x, y))
             CreateWall(x, y);
     }
 
     bool done = false;
-    do
-    {
-        float x = (float)xr(e1)*16.0f, y = (float)yr(e1)*16.0f;
-        if (done = !g_world.HasObstacle(x, y))
-        {
-            g_player.Init(&g_redSprite, x, y);
-            g_world.AddObject(&g_player);
-        }
-    } while (!done);
-
-    g_font.loadFromFile("sansation.ttf");
+    float x, y;
+    GetFreeRandom(x, y);
+    g_resources.player.Init(NULL, x, y);
+    g_world.AddObject(&g_resources.player);
     
-    g_menu.Set(g_window.m_window, &g_font, sf::Vector2i(100, 400));
-    g_menu.AddItem("Start Game");
-    g_menu.AddItem("Exit");
+    static People tests[32];
+    for (int i=0; i<32; ++i)
+    {
+        GetFreeRandom(x, y);
+        tests[i].Init(NULL, x, y);
+        g_world.AddObject(&tests[i]);
+    }
 
-    std::vector<std::string> dialogContents;
-    dialogContents.push_back("What do you want to do?");
-    dialogContents.push_back("> Give some advice!");
-    dialogContents.push_back("> Laugh an Evil Laugh (Hu ha ha ha...)!");
-    dialogContents.push_back("> Say \"Go to Hell!\"");
-    dialogContents.push_back("> Ignore!");
-    g_testDialog.Set(g_window.m_window, &g_font, dialogContents);
-    //g_envSound.AddStaticUnit("cricket.wav", sf::Vector3f(10.0f, 0.0f, 0.0f), 0.1f);
-    //g_envSound.AddStaticUnit("crickets.wav", sf::Vector3f(-10.0f, 10.0f, 0.0f), 0.1f);
-    //g_envSound.SetListenerPosition(g_playerPos);
+    /*g_envSound.AddStaticUnit("cat1.wav", sf::Vector3f(10.0f, 0.0f, 0.0f), 1.0f);
+    g_envSound.SetListenerPosition(g_playerPos);*/
 }
 
-int tx=-1, ty=-1;
+PathFinding pf;
+inline float SIGN(float x)
+{
+    if (x < 0) return -1;
+    return 1;
+}
+bool FindNearest(float &mx, float &my)
+{
+    float dx = SIGN(mx - g_resources.player.GetX()) * 16;
+    float dy = SIGN(my - g_resources.player.GetY()) * 16;
+    if (!g_world.GetObstacle(mx+dx, my))
+        mx = mx + dx;
+    else if (!g_world.GetObstacle(mx, my+dy))
+        my = my + dy;
+    else if (!g_world.GetObstacle(mx+dx, my+dy))
+    {
+        mx += dx;
+        my += dy;
+    }
+    else
+        return false;
+    return true;
+}
+
+Object* g_currentObject = NULL;
 void HandleMousePress(float mx, float my)
 {
     if (mx < 0 || my < 0 || mx >= WIDTH || my >= HEIGHT)
         return;
-    if (g_world.HasObstacle(mx, my))
+    bool snapped = (int)g_resources.player.GetX() % 16 == 0 && (int)g_resources.player.GetY() % 16 == 0;
+    
+    Object* obj;
+    if (obj = g_world.GetObstacle(mx, my))
     {
-        std::cout << "Unreachable taget: " << mx << "  " << my << std::endl;
+        mx = float(int(mx/16)*16);
+        my = float(int (my/16)*16);
+        float dx = g_resources.player.GetX() - mx;
+        float dy = g_resources.player.GetY() - my;
+        if (fabs(dx) <= 16  && dy == 0 || fabs(dy) <= 16 && dx == 0)
+        {
+            if (obj != &g_resources.player)
+            {
+                Direction dir1, dir2;
+                if (fabs(dx) > fabs(dy))
+                {
+                    if (dx < 0)
+                    {
+                        dir1 = LEFT;
+                        dir2 = RIGHT;
+                    }
+                    else
+                    {
+                        dir1 = RIGHT;
+                        dir2 = LEFT;
+                    }
+                }
+                else
+                {
+                    if (dy < 0)
+                    {
+                        dir1 = UP;
+                        dir2 = DOWN;
+                    }
+                    else
+                    {
+                        dir1 = DOWN;
+                        dir2 = UP;
+                    }
+                
+                }
+                obj->SetDir(dir1);
+                g_resources.player.SetDir(dir2);
+                obj->Interact();
+                return;
+            }
+        }
+        if (!FindNearest(mx, my))
+            return;
+    }
+    if (!snapped)
         return;
-    }
-    tx = int(mx/16)*16;
-    ty = int(my/16)*16;
+    int tx = int(mx/16)*16;
+    int ty = int(my/16)*16;
 
-    float dx = (float)tx - g_player.GetX();
-    float dy = (float)ty - g_player.GetY();
-    if (fabs(dx) > fabs(dy))
-    {
-        if (dx < 0)
-            g_player.SetDir(LEFT);
-        else if (dx > 0)
-            g_player.SetDir(RIGHT);
-    }
-    else
-    {
-        if (dy < 0)
-            g_player.SetDir(UP);
-        else if (dy > 0)
-            g_player.SetDir(DOWN);
-    }
+    pf.Start(&g_resources.player, tx, ty);
 }
 
 bool mdown = false;
+bool moving = false;
+
 void Update(double dt)
 {
-    //g_menu.Update(dt);
-    g_testDialog.Update(dt);
-    return;
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
     {
         if (!mdown)
@@ -146,126 +221,18 @@ void Update(double dt)
     }
     else
         mdown = false;
-    bool snapped = (int)g_player.GetX() % 16 == 0 && (int)g_player.GetY() % 16 == 0;
-    if ((tx != -1 && ty != -1) || !snapped)
-    {
-        if (tx == g_player.GetX() && ty == g_player.GetY() && snapped)
-        {
-            tx = -1;
-            ty = -1;
-        }
-        else
-        {
-            int trial = 0;
-            if (snapped)
-            {
-                float dx = 0;
-                float dy = 0;
-                if (g_player.GetDir() == LEFT)
-                    dx = -16;
-                else if (g_player.GetDir() == RIGHT)
-                    dx = 16;
-                else if (g_player.GetDir() == UP)
-                    dy = -16;
-                else if (g_player.GetDir() == DOWN)
-                    dy = 16;
 
-                float nx = (float)g_player.GetX() + dx;
-                float ny = (float)g_player.GetY() + dy;
-                
-                if (!g_world.HasObstacle(nx, ny))
-                {
-                    dx = (float)tx - g_player.GetX();
-                    dy = (float)ty - g_player.GetY();
-                    if (fabs(dx) > fabs(dy))
-                    {
-                        if (dx < 0 && !g_world.HasObstacle(g_player.GetX()-16, g_player.GetY()))
-                        {
-                            dx = -16;
-                            g_player.SetDir(LEFT);
-                        }
-                        else if (dx > 0 && !g_world.HasObstacle(g_player.GetX()+16, g_player.GetY()))
-                        {
-                            g_player.SetDir(RIGHT);
-                            dx = 16;
-                        }
-                        dy = 0;
-                    }
-                    else
-                    {
-                        if (dy < 0 && !g_world.HasObstacle(g_player.GetX(), g_player.GetY()-16))
-                        {
-                            g_player.SetDir(UP);
-                            dy = -16;
-                        }
-                        if (dy > 0 && !g_world.HasObstacle(g_player.GetX(), g_player.GetY()+16))
-                        {
-                            g_player.SetDir(DOWN);
-                            dy = 16;
-                        }
-                        dx = 0;
-                    }
-                }
-                nx = (float)g_player.GetX() + dx;
-                ny = (float)g_player.GetY() + dy;
-                while (g_world.HasObstacle(nx, ny) && trial < 4)
-                {
-                    if (dx < 0)
-                    {
-                        g_player.SetDir(DOWN);
-                        dy = 16;
-                        dx = 0;
-                    }
-                    else if (dx > 0)
-                    {
-                        g_player.SetDir(UP);
-                        dy = -16;
-                        dx = 0;
-                    }
-                    else if (dy > 0)
-                    {
-                        g_player.SetDir(RIGHT);
-                        dx = 16;
-                        dy = 0;
-                    }
-                    else if (dy < 0)
-                    {
-                        g_player.SetDir(LEFT);
-                        dx = -16;
-                        dy = 0;
-                    }
-                    nx = (float)g_player.GetX() + dx;
-                    ny = (float)g_player.GetY() + dy;             
-                    trial++;
-                }
-            }
-            if (trial < 4)
-            {
-                if (g_player.GetDir() == RIGHT)
-                {
-                    //if (!g_world.HasObstacle(g_player.GetX() + 16, g_player.GetY()))
-                        g_player.SetX(g_player.GetX() + 1);
-                }
-                else if (g_player.GetDir() == LEFT)
-                {
-                    //if (!g_world.HasObstacle(g_player.GetX() - 16, g_player.GetY()))
-                        g_player.SetX(g_player.GetX() - 1);
-                }
-                else if (g_player.GetDir() == DOWN)
-                {
-                    //if (!g_world.HasObstacle(g_player.GetX(), g_player.GetY() + 16))
-                        g_player.SetY(g_player.GetY() + 1);
-                }
-                else if (g_player.GetDir() == UP)
-                {
-                    //if (!g_world.HasObstacle(g_player.GetX(), g_player.GetY() - 16))
-                        g_player.SetY(g_player.GetY() - 1);
-                }
-            }
-        }
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+    {
+        auto pos = g_window.m_window->mapPixelToCoords(sf::Mouse::getPosition(*g_window.m_window));
+        g_currentObject = g_world.GetObstacle(pos.x, pos.y);
+        if (g_currentObject && g_currentObject->GetTitle() != "")
+            std::cout << g_currentObject->GetTitle() << ": " << g_currentObject->GetInfo() << std::endl;
     }
 
+    pf.Update();
     g_world.Update(dt);
+
     /*if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
     {
         g_playerPos.x--;
@@ -285,22 +252,19 @@ void Update(double dt)
     {
         g_playerPos.y--;
         g_envSound.SetListenerPosition(g_playerPos);
-    }
-    g_envSound.Update(dt);*/
+    }*/
+    //g_envSound.Update(dt);
 }
 
 void Render()
 {
-    //g_world.SetCameraCenter(g_player.GetX(), g_player.GetY());
-    //g_world.Render();
-    //g_menu.Render();
-    g_testDialog.Render();
+    g_world.SetCameraCenter(g_resources.player.GetX(), g_resources.player.GetY());
+    g_world.Render();
 }
 
 void CleanUp()
 {
-    g_blackSprite.CleanUp();
-    g_redSprite.CleanUp();
+    g_resources.CleanUp();
     g_world.CleanUp();
 }
 
@@ -308,7 +272,7 @@ int main(int argc, char* argv[])
 {
     try
     {
-        g_window.Create("Testing", WIDTH, HEIGHT);
+        g_window.Create("Khatra Game", int(800/16)*16, int(600/16)*16);
         Initialize();
         g_window.SetUpdateCallback(Update);
         g_window.SetRenderCallback(Render);

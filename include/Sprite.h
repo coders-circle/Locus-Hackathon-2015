@@ -4,7 +4,7 @@ extern Window g_window;
 
 struct Animation
 {
-    Animation() : time(0.0), imageId(0), speed(1.0), loop(true) {}
+    Animation() : time(0.0), imageId(0), speed(7.0), loop(true) {}
     double time;
     uint32_t imageId;
     double speed;
@@ -36,7 +36,19 @@ public:
         m_numRows = numRows;
         m_texture = new sf::Texture;
         m_sprite = new sf::Sprite;
-        if (!m_texture->loadFromFile("explosion.png"))
+        if (!m_texture->loadFromFile(filename))
+            throw Exception("Couldn't load from file: " + filename);
+        m_sprite->setTexture(*m_texture);
+    }
+    void Init(const std::string& filename, int x, int y, int w, int h, int numCols = 1, int numRows = 1)
+    {
+        if (m_texture || m_sprite)
+            return;
+        m_numCols = numCols;
+        m_numRows = numRows;
+        m_texture = new sf::Texture;
+        m_sprite = new sf::Sprite;
+        if (!m_texture->loadFromFile(filename, sf::IntRect(x, y, w, h)))
             throw Exception("Couldn't load from file: " + filename);
         m_sprite->setTexture(*m_texture);
     }
@@ -94,8 +106,8 @@ public:
             delete m_texture;
     }
     
-    float GetWidth() const { return (float)m_texture->getSize().x/(float)m_numCols; }
-    float GetHeight() const { return (float)m_texture->getSize().y/(float)m_numRows; }
+    float GetWidth() const { if (!m_texture) return 16; return (float)m_texture->getSize().x/(float)m_numCols; }
+    float GetHeight() const { if (!m_texture) return 16; return (float)m_texture->getSize().y/(float)m_numRows; }
 
 
 private:

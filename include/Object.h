@@ -1,12 +1,13 @@
 #pragma once
 #include "Sprite.h"
 
-enum Direction { LEFT, RIGHT, UP, DOWN };
+class Resources;
+extern Resources g_resources;
+enum Direction { UP, LEFT, RIGHT, DOWN };
 class World;
 class Object
 {
 public:
-    Object() : m_dirty(false) {}
 
     virtual void Init(Sprite* sprite = NULL, float x = 0.0f, float y = 0.0f) 
     { 
@@ -25,31 +26,45 @@ public:
     }
     virtual void CleanUp() {}
 
-    virtual float GetWidth()
+    virtual float GetWidth() const
     {
         return m_spr->GetWidth();
     }
 
-    virtual float GetHeight()
+    virtual float GetHeight() const
     {
         return m_spr->GetHeight();
     }
 
+    virtual std::string GetTitle() { return ""; }
+    virtual std::string GetInfo() { return ""; }
+
+    virtual void Interact() {}
+
     float GetX() { return m_x; }
     float GetY() { return m_y; }
     Direction GetDir() { return m_dir; }
-    bool IsDirty() { return m_dirty; }
 
-    void SetX(float x) { m_x = x; m_dirty = true; }
-    void SetY(float y) { m_y = y; m_dirty = true; }
-    void SetPos(float x, float y) { m_x = x; m_y = y; m_dirty = true; }
-    void SetDir(Direction dir) { m_dir = dir; m_dirty = true; }
+    void SetX(float x) { m_x = x; }
+    void SetY(float y) { m_y = y; }
+    void SetPos(float x, float y) { m_x = x; m_y = y; }
+    void SetDir(Direction dir) { m_dir = dir; }
+
+    virtual int GetType() { return -1; }
 
 protected:
     Sprite* m_spr;
-    bool m_dirty;
 
     float m_x, m_y;
     Direction m_dir;
+    
+    std::map<std::string, int> m_attributes;
 };
 
+
+class TestObject : public Object
+{
+public:
+    std::string GetTitle() { return "TestTitle"; }
+    std::string GetInfo() { return "TestInfo"; }
+};
