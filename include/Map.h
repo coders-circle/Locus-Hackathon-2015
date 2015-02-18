@@ -5,13 +5,21 @@ void CreateHouseSprite(int x, int y, int w, int h)
     spr = g_resources.AddSprite();
     spr->Init("sprites/houses1.png", x, y, w, h);
 }
+void CreateTreeSprite(int x, int y, int w, int h)
+{
+    Sprite* spr;
+    spr = g_resources.AddSprite();
+    spr->Init("sprites/allinone.png", x, y, w, h);
+}
 void CreateHouseSprs()
 {
     CreateHouseSprite(0, 0, 72, 72);
     g_resources.housesStart = --g_resources.sprites.end();
     CreateHouseSprite(70, 0, 72, 72);
-    CreateHouseSprite(0, 70, 72, 72);
-    g_resources.houseLen = 3;
+    CreateHouseSprite(0, 75, 72, 72);
+    CreateTreeSprite(10, 0, 48, 48);
+    CreateTreeSprite(10+48, 0, 48, 48);
+    g_resources.houseLen = 5;
 }
 extern std::default_random_engine e1;
 
