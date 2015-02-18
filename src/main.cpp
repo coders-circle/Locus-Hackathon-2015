@@ -81,6 +81,7 @@ void Initialize()
 
     CreatePeopleSprs();
 
+
     g_world.Init(WIDTH, HEIGHT);
     g_world.SetViewArea(WIDTH/2, HEIGHT/2);
     

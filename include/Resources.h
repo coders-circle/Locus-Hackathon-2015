@@ -7,10 +7,9 @@ struct Resources
     {
         for (auto& spr : sprites)
             spr.CleanUp();
-
     }
     std::list<Sprite> sprites;
-    Sprite* AddSprite() { sprites.push_back(Sprite()); *(--sprites.end()); }
+    Sprite* AddSprite() { sprites.push_back(Sprite()); return &*(--sprites.end()); }
 
     std::list<Sprite>::iterator peopleStart;
     size_t peopleLen;

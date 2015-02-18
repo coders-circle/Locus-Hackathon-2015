@@ -1,5 +1,6 @@
 #pragma once
 #include "Object.h"
+#include "Background.h"
 
 class World
 {
@@ -16,6 +17,8 @@ public:
         m_miniMap.setViewport(sf::FloatRect(0.75f, 0.05f, 0.20f, 0.25f));
         m_miniMap.setSize(sf::Vector2f((float)m_width, (float)m_height));
         m_miniMap.setCenter(sf::Vector2f((float)m_width/2, (float)m_height/2));
+
+        m_back.Init(width, height);
     }
     void SetViewArea(float viewWidth, float viewHeight)
     {
@@ -84,9 +87,11 @@ public:
     void Render()
     {
         g_window.m_window->setView(m_camera);
+        m_back.Render();
         for (auto obj : m_objects)
             obj->Render();
         g_window.m_window->setView(m_miniMap);
+        m_back.Render();
         for (auto obj : m_objects)
             obj->Render();
         g_window.m_window->setView(m_camera);
@@ -96,6 +101,7 @@ public:
     {
         for (auto obj : m_objects)
             obj->CleanUp();
+        m_back.CleanUp();
     }
 
     void SetCameraCenter(float x, float y)
@@ -121,4 +127,6 @@ private:
 
     std::vector<Object*> m_obstacles;
     std::map<Object*, sf::Vector2i> m_previousPos;
+
+    Background m_back;
 };
