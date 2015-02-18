@@ -71,7 +71,9 @@
     <ClInclude Include="..\include\AmbientSound.h" />
     <ClInclude Include="..\include\AmbientSoundUnit.h" />
     <ClInclude Include="..\include\common.h" />
+    <ClInclude Include="..\include\DialogBox.h" />
     <ClInclude Include="..\include\Font.h" />
+    <ClInclude Include="..\include\Menu.h" />
     <ClInclude Include="..\include\Sprite.h" />
     <ClInclude Include="..\include\Texture.h" />
     <ClInclude Include="..\include\Timer.h" />

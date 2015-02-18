@@ -1,4 +1,6 @@
 #pragma once
+#include <common.h>
+#include "Window.h"
 #include "tinyxml2/tinyxml2.h"
 
 extern Window g_window;
@@ -34,6 +36,31 @@ public:
         }
         texture.loadFromFile(imageFile);
         sprite.setTexture(texture);
+    }
+
+    int GetHeight()
+    {
+        return size;
+    }
+
+    sf::Vector2i CalcSize(const std::string &string)
+    {
+        float py = 0.0f, px = 0.0f, pxMax = 0.0f;
+        for (size_t i = 0; i<string.size(); ++i)
+        {
+            if (string[i] == '\n')
+            {
+                py += size;
+                pxMax = pxMax > px ? pxMax : px;
+                px = 0;
+            }
+            else
+            {
+                CharInfo& c = m_chars[string[i]];
+                px += c.xadvance;
+            }
+        }
+        return sf::Vector2i(static_cast<int>((pxMax = pxMax > px ? pxMax : px) +0.5f), static_cast<int>(py + 0.5f));
     }
 
     void DrawText(float x, float y, const std::string& string)

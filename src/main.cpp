@@ -3,6 +3,9 @@
 #include "Window.h"
 #include "World.h"
 #include "AmbientSound.h"
+#include "Menu.h"
+
+#include "DialogBox.h"
 
 #define WIDTH (int(800/16)*16)
 #define HEIGHT (int(600/16)*16)
@@ -14,6 +17,11 @@ Sprite g_redSprite;
 World g_world;
 std::list<Object> g_walls;
 Object g_player;
+
+Menu g_menu;
+sf::Font g_font;
+
+DialogBox g_testDialog;
 
 sf::Vector3f g_playerPos(0.0f, 0.0f, 0.0f);
 AmbientSound g_envSound;
@@ -72,8 +80,22 @@ void Initialize()
         }
     } while (!done);
 
-    g_envSound.AddStaticUnit("cat1.wav", sf::Vector3f(10.0f, 0.0f, 0.0f), 1.0f);
-    g_envSound.SetListenerPosition(g_playerPos);
+    g_font.loadFromFile("sansation.ttf");
+    
+    g_menu.Set(g_window.m_window, &g_font, sf::Vector2i(100, 400));
+    g_menu.AddItem("Start Game");
+    g_menu.AddItem("Exit");
+
+    std::vector<std::string> dialogContents;
+    dialogContents.push_back("What do you want to do?");
+    dialogContents.push_back("> Give some advice!");
+    dialogContents.push_back("> Laugh an Evil Laugh (Hu ha ha ha...)!");
+    dialogContents.push_back("> Say \"Go to Hell!\"");
+    dialogContents.push_back("> Ignore!");
+    g_testDialog.Set(g_window.m_window, &g_font, dialogContents);
+    //g_envSound.AddStaticUnit("cricket.wav", sf::Vector3f(10.0f, 0.0f, 0.0f), 0.1f);
+    //g_envSound.AddStaticUnit("crickets.wav", sf::Vector3f(-10.0f, 10.0f, 0.0f), 0.1f);
+    //g_envSound.SetListenerPosition(g_playerPos);
 }
 
 int tx=-1, ty=-1;
@@ -110,6 +132,9 @@ void HandleMousePress(float mx, float my)
 bool mdown = false;
 void Update(double dt)
 {
+    //g_menu.Update(dt);
+    g_testDialog.Update(dt);
+    return;
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
     {
         if (!mdown)
@@ -241,7 +266,7 @@ void Update(double dt)
     }
 
     g_world.Update(dt);
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+    /*if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
     {
         g_playerPos.x--;
         g_envSound.SetListenerPosition(g_playerPos);
@@ -261,13 +286,15 @@ void Update(double dt)
         g_playerPos.y--;
         g_envSound.SetListenerPosition(g_playerPos);
     }
-    g_envSound.Update(dt);
+    g_envSound.Update(dt);*/
 }
 
 void Render()
 {
-    g_world.SetCameraCenter(g_player.GetX(), g_player.GetY());
-    g_world.Render();
+    //g_world.SetCameraCenter(g_player.GetX(), g_player.GetY());
+    //g_world.Render();
+    //g_menu.Render();
+    g_testDialog.Render();
 }
 
 void CleanUp()
