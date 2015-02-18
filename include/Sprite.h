@@ -40,6 +40,18 @@ public:
             throw Exception("Couldn't load from file: " + filename);
         m_sprite->setTexture(*m_texture);
     }
+    void Init(const std::string& filename, int x, int y, int w, int h, int numCols = 1, int numRows = 1)
+    {
+        if (m_texture || m_sprite)
+            return;
+        m_numCols = numCols;
+        m_numRows = numRows;
+        m_texture = new sf::Texture;
+        m_sprite = new sf::Sprite;
+        if (!m_texture->loadFromFile("explosion.png", sf::IntRect(x, y, w, h)))
+            throw Exception("Couldn't load from file: " + filename);
+        m_sprite->setTexture(*m_texture);
+    }
     void MakeAnimated()
     {
         if (m_anim)

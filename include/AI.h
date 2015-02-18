@@ -31,12 +31,12 @@ public:
             else if (dy > 0)
                 obj->SetDir(DOWN);
         }
-
+        moving = true;
     }
 
     void Update()
     {
-        if (!obj)
+        if (!obj || !moving)
             return;
         bool snapped = (int)obj->GetX() % 16 == 0 && (int)obj->GetY() % 16 == 0;
         if ((tx != -1 && ty != -1) || !snapped)
@@ -45,10 +45,10 @@ public:
             {
                 tx = -1;
                 ty = -1;
+                moving = false;
             }
             else
             {
-                moving = true;
                 int trial = 0;
                 if (snapped)
                 {
@@ -141,25 +141,13 @@ public:
                 if (moving)
                 {
                     if (obj->GetDir() == RIGHT)
-                    {
-                        //if (!g_world.HasObstacle(obj->GetX() + 16, obj->GetY()))
-                            obj->SetX(obj->GetX() + 1);
-                    }
+                        obj->SetX(obj->GetX() + 1);
                     else if (obj->GetDir() == LEFT)
-                    {
-                        //if (!g_world.HasObstacle(obj->GetX() - 16, obj->GetY()))
-                            obj->SetX(obj->GetX() - 1);
-                    }
+                        obj->SetX(obj->GetX() - 1);
                     else if (obj->GetDir() == DOWN)
-                    {
-                        //if (!g_world.HasObstacle(obj->GetX(), obj->GetY() + 16))
-                            obj->SetY(obj->GetY() + 1);
-                    }
+                        obj->SetY(obj->GetY() + 1);
                     else if (obj->GetDir() == UP)
-                    {
-                        //if (!g_world.HasObstacle(obj->GetX(), obj->GetY() - 16))
-                            obj->SetY(obj->GetY() - 1);
-                    }
+                        obj->SetY(obj->GetY() - 1);
                 }
             }
         }

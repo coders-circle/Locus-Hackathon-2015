@@ -3,7 +3,7 @@
 class Window
 {
 public:
-    void Create(const std::string &title, uint32_t width, uint32_t height)
+    void Create(const std::wstring &title, uint32_t width, uint32_t height)
     {
        m_window = new sf::RenderWindow(sf::VideoMode(width, height), title.c_str());
     }
@@ -26,8 +26,6 @@ public:
                 }
             }
 
-            std::string title = "FPS: " + std::to_string(timer.GetFPS());
-            m_window->setTitle(title.c_str());
             timer.Update([this](double dt){ 
                 if (m_update)
                     m_update(dt); 

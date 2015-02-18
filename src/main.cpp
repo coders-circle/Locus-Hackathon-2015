@@ -4,17 +4,15 @@
 #include "World.h"
 #include "AmbientSound.h"
 #include "AI.h"
+#include "Resources.h"
 
 #define WIDTH (int(800/16)*16)
 #define HEIGHT (int(600/16)*16)
 
 
 Window g_window;
-Sprite g_blackSprite;
-Sprite g_redSprite;
 World g_world;
-std::list<Object> g_walls;
-Object g_player;
+Resources g_resources;
 
 sf::Vector3f g_playerPos(0.0f, 0.0f, 0.0f);
 AmbientSound g_envSound;
@@ -22,9 +20,9 @@ AmbientSound g_envSound;
 void CreateWall(float x, float y)
 {
     Object obj;
-    obj.Init(&g_blackSprite, x, y);
-    g_walls.push_back(obj);
-    g_world.AddObject(&(*(--g_walls.end())));
+    obj.Init(&g_resources.sprites[0], x, y);
+    g_resources.walls.push_back(obj);
+    g_world.AddObject(&(*(--g_resources.walls.end())));
 }
 void Create16x16Sprite(Sprite& spr, uint32_t rgba)
 {
@@ -44,11 +42,13 @@ void Create16x32Sprite(Sprite& spr, uint32_t rgba)
 }
 void Initialize()
 {
-    Create16x16Sprite(g_blackSprite, 0xFF000000);
+    g_resources.sprites.push_back(Sprite());
+    g_resources.sprites.push_back(Sprite());
+    Create16x16Sprite(g_resources.sprites[0], 0xFF000000);
 #if PHEIGHT == 16
-    Create16x16Sprite(g_redSprite, 0xFF0000FF);
+    Create16x16Sprite(g_resources.sprites[1], 0xFF0000FF);
 #else
-    Create16x32Sprite(g_redSprite, 0xFF0000FF);
+    Create16x32Sprite(g_resources.sprites[1], 0xFF0000FF);
 #endif
 
     g_world.Init(WIDTH, HEIGHT);
@@ -80,8 +80,8 @@ void Initialize()
         float x = (float)xr(e1)*16.0f, y = (float)yr(e1)*16.0f;
         if (done = !g_world.HasObstacle(x, y))
         {
-            g_player.Init(&g_redSprite, x, y);
-            g_world.AddObject(&g_player);
+            g_resources.player.Init(&g_resources.sprites[1], x, y);
+            g_world.AddObject(&g_resources.player);
         }
     } while (!done);
 
@@ -99,13 +99,13 @@ void HandleMousePress(float mx, float my)
         std::cout << "Unreachable taget: " << mx << "  " << my << std::endl;
         return;
     }
-    bool snapped = (int)g_player.GetX() % 16 == 0 && (int)g_player.GetY() % 16 == 0;
+    bool snapped = (int)g_resources.player.GetX() % 16 == 0 && (int)g_resources.player.GetY() % 16 == 0;
     if (!snapped)
         return;
     int tx = int(mx/16)*16;
     int ty = int(my/16)*16;
 
-    pf.Start(&g_player, tx, ty);
+    pf.Start(&g_resources.player, tx, ty);
 }
 
 bool mdown = false;
@@ -152,14 +152,13 @@ void Update(double dt)
 
 void Render()
 {
-    g_world.SetCameraCenter(g_player.GetX(), g_player.GetY());
+    g_world.SetCameraCenter(g_resources.player.GetX(), g_resources.player.GetY());
     g_world.Render();
 }
 
 void CleanUp()
 {
-    g_blackSprite.CleanUp();
-    g_redSprite.CleanUp();
+    g_resources.CleanUp();
     g_world.CleanUp();
 }
 
@@ -167,7 +166,7 @@ int main(int argc, char* argv[])
 {
     try
     {
-        g_window.Create("Testing", WIDTH, HEIGHT);
+        g_window.Create(L"सुन्दर शान्त" , WIDTH, HEIGHT);
         Initialize();
         g_window.SetUpdateCallback(Update);
         g_window.SetRenderCallback(Render);
