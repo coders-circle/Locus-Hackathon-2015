@@ -12,7 +12,11 @@ public:
     int GetType() { return 1; }
     void Interact() { std::cout << "Interacting" << std::endl; }
 
+    void SetPlayer(bool player = true) { m_player = player; }
+
 private:
     bool m_moving;
     int m_sprId;
+    bool m_player;
 };
+

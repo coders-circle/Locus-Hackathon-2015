@@ -16,30 +16,32 @@ public:
         for (char ch : text)
             if (ch == '\n')
                 lns++;
+
+        lns = (int)std::ceil((float)lns/2.0f);
         const float sprsz = 32;
-        m_spr->Render(px, py, 1.0f, 1.0f, 6);
+        m_spr->Render(px, py, 1.0f, 1.0f, 4);
         px += sprsz;
         const int width = 5;
         for (int i=0; i<width; ++i, px+=sprsz)
-            m_spr->Render(px, py, 1.0f, 1.0f, 2);
-        m_spr->Render(px, py, 1.0f, 1.0f, 3);
+            m_spr->Render(px, py, 1.0f, 1.0f, 6);
+        m_spr->Render(px, py, 1.0f, 1.0f, 2);
 
         for (int i=0; i<lns; ++i)
         {
             py += sprsz;
             px = x;
-            m_spr->Render(px, py, 1.0f, 1.0f, 1);
+            m_spr->Render(px, py, 1.0f, 1.0f, 5);
             px += sprsz;
             for (int i=0; i<width; ++i, px+=sprsz)
-                m_spr->Render(px, py, 1.0f, 1.0f, 5);
-            m_spr->Render(px, py, 1.0f, 1.0f, 1);
+                m_spr->Render(px, py, 1.0f, 1.0f, 3);
+            m_spr->Render(px, py, 1.0f, 1.0f, 5);
         }
         py += sprsz;
         px = x;
-        m_spr->Render(px, py, 1.0f, 1.0f, 4);
+        m_spr->Render(px, py, 1.0f, 1.0f, 1);
         px += sprsz;
         for (int i=0; i<width; ++i, px+=sprsz)
-            m_spr->Render(px, py, 1.0f, 1.0f, 2);
+            m_spr->Render(px, py, 1.0f, 1.0f, 6);
         m_spr->Render(px, py, 1.0f, 1.0f, 0);
         
         sf::Text textd;

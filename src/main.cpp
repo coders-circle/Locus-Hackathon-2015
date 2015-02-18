@@ -6,8 +6,8 @@
 #include "Resources.h"
 #include "Bubble.h"
 
-#define WIDTH (int(800/16)*16)
-#define HEIGHT (int(600/16)*16)
+#define WIDTH (int(640/16)*16)
+#define HEIGHT (int(480/16)*16)
 
 
 Window g_window;
@@ -23,7 +23,7 @@ Sprite* spr1;
 void CreateWall(float x, float y)
 {
     Object obj;
-    obj.Init(spr1, x, y);
+    obj.Init(NULL, x, y);
     g_resources.walls.push_back(obj);
     Object* objp = &(*(--g_resources.walls.end()));
     g_world.AddObject(objp);
@@ -93,7 +93,7 @@ void Initialize()
     g_bubble.Init(spr, &g_font);
 
     g_world.Init(WIDTH, HEIGHT);
-    g_world.SetViewArea(WIDTH/2, HEIGHT/2);
+    g_world.SetViewArea(WIDTH/1.5f, HEIGHT/1.5f);
 
     //Create Obstacles at HEIGHT - 4*16
     static Object waterwalls[WIDTH/16];
@@ -113,12 +113,12 @@ void Initialize()
     for (float y=16; y<HEIGHT; y+=16)
         CreateWall(WIDTH-16, y);
     
-    for (int i=0; i<200; ++i)
-    {
-        float x = (float)xr(e1)*16.0f, y = (float)yr(e1)*16.0f;
-        if (!g_world.GetObstacle(x, y))
-            CreateWall(x, y);
-    }
+    //for (int i=0; i<200; ++i)
+    //{
+    //    float x = (float)xr(e1)*16.0f, y = (float)yr(e1)*16.0f;
+    //    if (!g_world.GetObstacle(x, y))
+    //        CreateWall(x, y);
+    //}
 
     bool done = false;
     float x, y;

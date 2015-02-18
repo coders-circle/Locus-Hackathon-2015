@@ -27,6 +27,7 @@ void People::Init(Sprite* sprite, float x, float y)
     m_moving = true;
     m_x = x;
     m_y = y;
+    m_player = false;
 }
 
 void People::Update(double dt)
@@ -43,6 +44,6 @@ void People::Render()
 {
     if (!m_spr)
         return;
-    m_spr->Render(m_x, m_y, 1.0f, 1.0f, GetImg(m_sprId, (int)m_dir));
+    m_spr->Render(m_x, m_y, 1.0f, 1.0f, GetImg(m_sprId, (int)m_dir), (m_player)?sf::Color::Green : sf::Color::White);
 }
 

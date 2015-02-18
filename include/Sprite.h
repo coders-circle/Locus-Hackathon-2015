@@ -79,7 +79,7 @@ public:
 
     Animation* GetAnimData() { return m_anim; }
     
-    void Render(float posX, float posY, float scale = 1.0f, float visibility = 1.0f, int imageId = -1)
+    void Render(float posX, float posY, float scale = 1.0f, float visibility = 1.0f, int imageId = -1, const sf::Color& color = sf::Color::White)
     {
         if (!m_texture || !m_sprite)
             return;
@@ -90,6 +90,7 @@ public:
             else
                 imageId = 0;
         }
+        m_sprite->setColor(color);
         sf::Vector2f uv((float)(imageId%m_numCols)/(float)m_numCols, (float)(imageId/m_numCols)/(float)m_numRows);
         uint32_t w = m_texture->getSize().x, h = m_texture->getSize().y;
         m_sprite->setTextureRect(sf::IntRect(int(uv.x*(float)w), int(uv.y*(float)h), w/m_numCols, h/m_numRows));

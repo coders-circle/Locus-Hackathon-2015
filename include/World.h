@@ -15,7 +15,7 @@ public:
         m_obstacles.resize(m_wm*m_hm, NULL);
         SetViewArea((float)m_width, (float)m_height);
 
-        m_miniMap.setViewport(sf::FloatRect(0.75f, 0.05f, 0.20f, 0.25f));
+        m_miniMap.setViewport(sf::FloatRect(0.65f, 0.1f, 0.3f, 0.3f));
         m_miniMap.setSize(sf::Vector2f((float)m_width, (float)m_height));
         m_miniMap.setCenter(sf::Vector2f((float)m_width/2, (float)m_height/2));
 
