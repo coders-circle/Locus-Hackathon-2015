@@ -37,7 +37,7 @@ public:
         {
             obj->Update(dt);
             // For moved objects, update the obstacle map
-//            if (obj->IsDirty())
+            if (obj->IsDirty())
             {
                 int nx = int(obj->GetX()/16), ny = int(obj->GetY()/16);
                 sf::Vector2i pxy = m_previousPos[obj];
