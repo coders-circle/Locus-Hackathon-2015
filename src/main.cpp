@@ -57,9 +57,12 @@ void CreatePeopleSprite(int x, int y, int w, int h, int ncols, int nrows)
 }
 void CreatePeopleSprs()
 {
-    CreatePeopleSprite(0, 1, 32, 32*4, 1, 4);
+    CreatePeopleSprite(32*4, 1, 32*3, 32*4, 3, 4);
     g_resources.peopleStart = --g_resources.sprites.end();
     CreatePeopleSprite(32, 1, 32*3, 32*4, 3, 4);
+    CreatePeopleSprite(32*7, 1, 32*3, 32*4, 3, 4);
+    CreatePeopleSprite(32*10, 1, 32*3, 32*4, 3, 4);
+    CreatePeopleSprite(32*13, 1, 32*3, 32*4, 3, 4);
     g_resources.peopleLen = 2;
 }
 
@@ -182,10 +185,12 @@ void Initialize()
     std::cout << x << "   " << y << std::endl;
     
     static People tests[32];
+    std::uniform_int_distribution<int> rnd1(0, 3);
     for (int i=0; i<32; ++i)
     {
         GetFreeRandom(x, y);
         tests[i].Init(NULL, x, y);
+        tests[i].SetDir((Direction)rnd1(e1));
         g_world.AddObject(&tests[i]);
     }
 

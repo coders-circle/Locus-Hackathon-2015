@@ -9,8 +9,10 @@ inline uint32_t GetImg(int sprid, int dir, int imId)
         return 0;
     uint32_t indices[][8] = 
     {
-        { 0, 0, 1, 1, 2, 2, 3, 3, },
-        { 0, 2, 3, 6, 4, 7, 8, 11, },
+        //{ 0, 0, 1, 1, 2, 2, 3, 3, },
+        { 0, 2, 6, 3, 1, 4, 5, 11, },
+        { 0, 2, 6, 3, 1, 4, 5, 11, },
+        { 0, 2, 6, 3, 1, 4, 5, 11, },
     };
     return indices[sprid][dir*2+imId];
 }
