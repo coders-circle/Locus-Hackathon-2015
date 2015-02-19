@@ -16,7 +16,7 @@ public:
         m_obstacles.resize(m_wm*m_hm, NULL);
         SetViewArea((float)m_width, (float)m_height);
 
-        m_miniMap.setViewport(sf::FloatRect(0.65f, 0.1f, 0.3f, 0.3f));
+        m_miniMap.setViewport(sf::FloatRect(0.05f, 0.65f, 0.3f, 0.3f));
         m_miniMap.setSize(sf::Vector2f((float)m_width, (float)m_height));
         m_miniMap.setCenter(sf::Vector2f((float)m_width/2, (float)m_height/2));
         
@@ -106,10 +106,16 @@ public:
             obj->Render();
 
         g_window.m_window->setView(m_miniMap);
+        sf::RectangleShape shape(sf::Vector2f(m_width-20, m_height-20));
+        shape.setOutlineThickness(10);
+        shape.setOutlineColor(sf::Color(0, 0, 0));
+        shape.setPosition(10, 10);
+        shape.setFillColor(sf::Color(0, 0, 0, 0));
         m_back.Render();
         m_water.Render();
         for (auto obj : m_objects)
             obj->Render();
+        g_window.m_window->draw(shape);
         g_window.m_window->setView(m_hud);
     }
 

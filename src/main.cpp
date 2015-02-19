@@ -2,13 +2,14 @@
 #include "Window.h"
 #include "World.h"
 #include "AmbientSound.h"
+#include "People.h"
 #include "AI.h"
 #include "Resources.h"
 #include "Bubble.h"
 #include "DialogBox.h"
 
-#define WIDTH (int(640/16)*16)
-#define HEIGHT (int(480/16)*16)
+#define WIDTH (int(640/16)*32)
+#define HEIGHT (int(480/16)*32)
 
 
 Window g_window;
@@ -56,9 +57,12 @@ void CreatePeopleSprite(int x, int y, int w, int h, int ncols, int nrows)
 }
 void CreatePeopleSprs()
 {
-    CreatePeopleSprite(0, 1, 16, 16*4, 1, 4);
+    CreatePeopleSprite(32*4, 1, 32*3, 32*4, 3, 4);
     g_resources.peopleStart = --g_resources.sprites.end();
-    CreatePeopleSprite(16, 1, 16*3, 16*4, 3, 4);
+    CreatePeopleSprite(32, 1, 32*3, 32*4, 3, 4);
+    CreatePeopleSprite(32*7, 1, 32*3, 32*4, 3, 4);
+    CreatePeopleSprite(32*10, 1, 32*3, 32*4, 3, 4);
+    CreatePeopleSprite(32*13, 1, 32*3, 32*4, 3, 4);
     g_resources.peopleLen = 2;
 }
 
@@ -70,21 +74,24 @@ std::uniform_int_distribution<int> yr(0, HEIGHT/16-1);
 
 sf::Font g_font;
     
+void GetFreeRandom32x32(float& x, float &y);
 void GetFreeRandom(float& x, float &y)
 {
-    while(true)
-    {
-        x = (float)xr(e1)*16.0f; y = (float)yr(e1)*16.0f;
-        if (!g_world.GetObstacle(x, y))
-            return;
-    }
+    GetFreeRandom32x32(x, y);
+    return;
+    //while(true)
+    //{
+    //    x = (float)xr(e1)*16.0f; y = (float)yr(e1)*16.0f;
+    //    if (!g_world.GetObstacle(x, y))
+    //        return;
+    //}
 }
 
 void GetFreeRandom72x72(float& x, float &y)
 {
     while(true)
     {
-        x = (float)xr(e1)*16.0f; y = (float)yr(e1)*16.0f;
+        x = (float)xr(e1)*32.0f; y = (float)yr(e1)*32.0f;
         float flag = false;
         for (float xx=x; xx<x+72; xx+=16)
         {
@@ -101,6 +108,27 @@ void GetFreeRandom72x72(float& x, float &y)
             return;
     }
 }
+void GetFreeRandom32x32(float& x, float &y)
+{
+    while(true)
+    {
+        x = (float)xr(e1)*32.0f; y = (float)yr(e1)*32.0f;
+        float flag = false;
+        for (float xx=x; xx<x+32 && xx < WIDTH; xx+=16)
+        {
+            for (float yy=y; yy<y+32 && yy < HEIGHT; yy+=16)
+            if (g_world.GetObstacle(xx, yy))
+            {
+                flag = true;
+                break;
+            }
+            if (flag)
+                break;
+        }
+        if (!flag && x < WIDTH && y < HEIGHT)
+            return;
+    }
+}
 #include "Map.h"
 
 Bubble g_bubble;
@@ -111,7 +139,9 @@ void Initialize()
 
     spr1 = g_resources.AddSprite();
     Create16x16Sprite(*spr1, 0xFF000000);
-    //Create16x16Sprite(*spr2, 0xFF0000FF);
+    //static Sprite spr2, spr3;
+    //Create32x32Sprite(spr2, 0xFF0000FF);
+    //Create32x32Sprite(spr3, 0xFFFF00FF);
 
     CreatePeopleSprs();
     auto spr = g_resources.AddSprite();
@@ -149,15 +179,18 @@ void Initialize()
 
     bool done = false;
     float x, y;
-    GetFreeRandom(x, y);
+    GetFreeRandom32x32(x, y);
     g_resources.player.Init(NULL, x, y);
     g_world.AddObject(&g_resources.player);
+    std::cout << x << "   " << y << std::endl;
     
     static People tests[32];
+    std::uniform_int_distribution<int> rnd1(0, 3);
     for (int i=0; i<32; ++i)
     {
         GetFreeRandom(x, y);
         tests[i].Init(NULL, x, y);
+        tests[i].SetDir((Direction)rnd1(e1));
         g_world.AddObject(&tests[i]);
     }
 
@@ -179,8 +212,8 @@ inline float SIGN(float x)
 }
 bool FindNearest(float &mx, float &my)
 {
-    float dx = SIGN(mx - g_resources.player.GetX()) * 16;
-    float dy = SIGN(my - g_resources.player.GetY()) * 16;
+    float dx = SIGN(mx - g_resources.player.GetX()) * 32;
+    float dy = SIGN(my - g_resources.player.GetY()) * 32;
     if (!g_world.GetObstacle(mx+dx, my))
         mx = mx + dx;
     else if (!g_world.GetObstacle(mx, my+dy))
@@ -210,16 +243,16 @@ void HandleMousePress(float mx, float my)
     if (g_disableInput)
         return;
     // Move object to target by clicking
-    bool snapped = (int)g_resources.player.GetX() % 16 == 0 && (int)g_resources.player.GetY() % 16 == 0;
+    bool snapped = (int)g_resources.player.GetX() % 32 == 0 && (int)g_resources.player.GetY() % 32 == 0;
     
     Object* obj;
     if (obj = g_world.GetObstacle(mx, my))
     {
-        mx = float(int(mx/16)*16);
-        my = float(int (my/16)*16);
+        mx = float(int(mx/32)*32);
+        my = float(int (my/32)*32);
         float dx = g_resources.player.GetX() - mx;
         float dy = g_resources.player.GetY() - my;
-        if (fabs(dx) <= 16  && dy == 0 || fabs(dy) <= 16 && dx == 0)
+        if (fabs(dx) <= 32  && dy == 0 || fabs(dy) <= 32 && dx == 0)
         {
             if (obj != &g_resources.player)
             {
@@ -270,8 +303,8 @@ void HandleMousePress(float mx, float my)
     }
     if (!snapped)
         return;
-    int tx = int(mx/16)*16;
-    int ty = int(my/16)*16;
+    int tx = int(mx/32)*32;
+    int ty = int(my/32)*32;
 
     pf.Start(&g_resources.player, tx, ty);
 }
@@ -371,7 +404,7 @@ void Render()
 
     if (g_interacting)
     {
-        g_bubble.Render(g_ix, g_iy, "some random interaction text");
+        g_bubble.Render(px, py, "some random interaction text");
     }
     if (g_dialogShown)
     {
@@ -383,7 +416,7 @@ void Render()
     {
         std::string info;
         info = g_currentObject->GetTitle() + "\n------------\n" + g_currentObject->GetInfo();
-        g_bubble.Render(0, HEIGHT-50, info);
+        g_bubble.Render(50, 50, info);
     }
     g_world.ResetView();
 }

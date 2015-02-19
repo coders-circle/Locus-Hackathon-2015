@@ -15,9 +15,10 @@ public:
     void SetPlayer(bool player = true) { m_player = player; }
 
 
-private:
     bool m_moving;
+private:
     int m_sprId;
     bool m_player;
+    int m_imId; double tm;
 };
 

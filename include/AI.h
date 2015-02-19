@@ -1,6 +1,6 @@
 #pragma once
 
-#define TSZ 16
+#define TSZ 32
 extern World g_world;
 class PathFinding
 {
@@ -38,7 +38,7 @@ public:
     {
         if (!obj || !moving)
             return;
-        bool snapped = (int)obj->GetX() % 16 == 0 && (int)obj->GetY() % 16 == 0;
+        bool snapped = (int)obj->GetX() % TSZ == 0 && (int)obj->GetY() % TSZ == 0;
         if ((tx != -1 && ty != -1) || !snapped)
         {
             if (tx == obj->GetX() && ty == obj->GetY() && snapped)
@@ -149,5 +149,7 @@ public:
                 }
             }
         }
+        ((People*)obj)->m_moving = moving;
+
     }
 };
