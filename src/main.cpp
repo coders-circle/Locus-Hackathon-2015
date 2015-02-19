@@ -173,7 +173,7 @@ bool FindNearest(float &mx, float &my)
 bool g_interacting = false;
 bool g_dialogShown = false;
 double g_interactionPeriod = 0.0;
-double g_maxInteractionPeriod = 1.0;
+double g_maxInteractionPeriod = 2.0;
 int g_ix = 0, g_iy = 0;
 
 Object* g_currentObject = NULL;
@@ -231,8 +231,8 @@ void HandleMousePress(float mx, float my)
                 obj->Interact();
                 g_disableInput = true;
                 g_interacting = true;
-                g_ix = obj->GetX() - 20;
-                g_iy = obj->GetY() - 50;
+                g_ix = obj->GetX();
+                g_iy = obj->GetY();
                 return;
             }
         }
@@ -304,6 +304,7 @@ void Update(double dt)
             g_interactionPeriod = 0;
             g_interacting = false;
             g_dialogShown = true;
+            g_dialog.ResetSelection();
         }
     }
     if (g_dialogShown)

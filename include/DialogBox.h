@@ -55,6 +55,10 @@ public:
     {
         return m_options.GetSelected();
     }
+    void ResetSelection()
+    {
+        m_options.ReseteSelection();
+    }
 protected:
     Menu m_options;
     //std::string m_titleString;

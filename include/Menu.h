@@ -126,6 +126,10 @@ public:
     {
         return m_selectedOption;
     }
+    void ReseteSelection()
+    {
+        m_selectedOption = 0;
+    }
 private:
     std::vector<MenuItem*> m_items;
     sf::RenderWindow* m_window;
