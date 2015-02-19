@@ -14,6 +14,7 @@ public:
 
     void SetPlayer(bool player = true) { m_player = player; }
 
+
 private:
     bool m_moving;
     int m_sprId;

@@ -18,7 +18,7 @@ public:
         m_title.setColor(sf::Color::Black);
         m_title.setFont(*m_font);
         m_title.setString(contents[0]);
-        m_title.setCharacterSize(50);
+        m_title.setCharacterSize(32);
         
 
         optionsPos.y = (m_window->getSize().y - 50

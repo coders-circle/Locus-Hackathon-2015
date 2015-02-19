@@ -17,7 +17,7 @@ public:
             if (ch == '\n')
                 lns++;
 
-        lns = (int)std::ceil((float)lns/2.0f);
+        lns = (int)std::ceil((float)lns/1.5f);
         const float sprsz = 32;
         m_spr->Render(px, py, 1.0f, 1.0f, 4);
         px += sprsz;
@@ -47,7 +47,7 @@ public:
         sf::Text textd;
         textd.setFont(*m_font);
         textd.setString(text.c_str());
-        textd.setCharacterSize(16);
+        textd.setCharacterSize(20);
         textd.setPosition(x + 38, y+32);
         textd.setColor(sf::Color::Black);
         g_window.m_window->draw(textd);

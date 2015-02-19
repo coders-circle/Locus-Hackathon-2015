@@ -80,6 +80,29 @@ void GetFreeRandom(float& x, float &y)
     }
 }
 
+void GetFreeRandom72x72(float& x, float &y)
+{
+    while(true)
+    {
+        x = (float)xr(e1)*16.0f; y = (float)yr(e1)*16.0f;
+        float flag = false;
+        for (float xx=x; xx<x+72; xx+=16)
+        {
+            for (float yy=y; yy<y+72; yy+=16)
+            if (g_world.GetObstacle(xx, yy))
+            {
+                flag = true;
+                break;
+            }
+            if (flag)
+                break;
+        }
+        if (!flag)
+            return;
+    }
+}
+#include "Map.h"
+
 Bubble g_bubble;
 void Initialize()
 {
@@ -105,6 +128,8 @@ void Initialize()
         waterwalls[i].Init(NULL, (float)i*16, j);
         g_world.AddObject(&waterwalls[i]);
     }
+    
+    CreateHouses();
     
     for (float x=0; x<WIDTH; x+=16)
         CreateWall(x, 0);
@@ -179,7 +204,7 @@ int g_ix = 0, g_iy = 0;
 Object* g_currentObject = NULL;
 void HandleMousePress(float mx, float my)
 {
-    if (mx < 0 || my < 0 || mx >= WIDTH || my >= HEIGHT)
+    if (mx <= 0 || my <= 0 || mx >= WIDTH || my >= HEIGHT)
         return;
 
     if (g_disableInput)
@@ -229,10 +254,14 @@ void HandleMousePress(float mx, float my)
                 obj->SetDir(dir1);
                 g_resources.player.SetDir(dir2);
                 obj->Interact();
+
+                if (obj->GetType() == 1) // 1 == PEOPLE
+                {
                 g_disableInput = true;
                 g_interacting = true;
-                g_ix = obj->GetX();
-                g_iy = obj->GetY();
+                    g_ix = obj->GetX() - 20;
+                    g_iy = obj->GetY() - 70;
+                }
                 return;
             }
         }
@@ -247,7 +276,7 @@ void HandleMousePress(float mx, float my)
     pf.Start(&g_resources.player, tx, ty);
 }
 
-bool mdown = false;
+bool mdown = false, rmdown = false;
 bool moving = false;
 
 void Update(double dt)
@@ -264,13 +293,19 @@ void Update(double dt)
     else
         mdown = false;
 
-    //if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
-    //{
-    //    auto pos = g_window.m_window->mapPixelToCoords(sf::Mouse::getPosition(*g_window.m_window));
-    //    g_currentObject = g_world.GetObstacle(pos.x, pos.y);
-    //    if (g_currentObject && g_currentObject->GetTitle() != "")
-    //        std::cout << g_currentObject->GetTitle() << ": " << g_currentObject->GetInfo() << std::endl;
-    //}
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+    {
+        if (!rmdown)
+        {
+            auto pos = g_window.m_window->mapPixelToCoords(sf::Mouse::getPosition(*g_window.m_window));
+            g_currentObject = g_world.GetObstacle(pos.x, pos.y);
+            if (g_currentObject && g_currentObject->GetTitle() != "")
+                std::cout << g_currentObject->GetTitle() << ": " << g_currentObject->GetInfo() << std::endl;
+            rmdown = true;
+        }
+    }
+    else
+        rmdown = false;
 
     pf.Update();
     g_world.Update(dt);
@@ -344,7 +379,12 @@ void Render()
     }
     //g_bubble.Render(px, py, "Hello World Great");
 
-    
+    if (g_currentObject && g_currentObject->GetTitle() != "")
+    {
+        std::string info;
+        info = g_currentObject->GetTitle() + "\n------------\n" + g_currentObject->GetInfo();
+        g_bubble.Render(0, HEIGHT-50, info);
+    }
     g_world.ResetView();
 }
 
@@ -358,7 +398,7 @@ int main(int argc, char* argv[])
 {
     try
     {
-        g_window.Create("Khatra Game", int(800/16)*16, int(600/16)*16);
+        g_window.Create("Rise of the Village", int(800/16)*16, int(600/16)*16);
         Initialize();
         g_window.SetUpdateCallback(Update);
         g_window.SetRenderCallback(Render);
