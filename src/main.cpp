@@ -410,7 +410,7 @@ void Render()
     {
         std::string info;
         info = g_currentObject->GetTitle() + "\n------------\n" + g_currentObject->GetInfo();
-        g_bubble.Render(0, HEIGHT-50, info);
+        g_bubble.Render(50, 50, info);
     }
     g_world.ResetView();
 }
